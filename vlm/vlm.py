@@ -28,44 +28,46 @@ from PIL import Image
 
 # --- Configuration (use environment variables) ---
 # Set these in your shell instead of hardcoding keys.
+# NOTE: API_KEY and client initialization are now deferred to avoid SystemExit at import time
+# when used as a module (e.g., in a FastAPI backend). The check happens in analyze_image_bytes().
 
-API_KEY = os.environ.get("GOOGLE_API_KEY")
 MODEL_NAME = os.environ.get("GOOGLE_MODEL", "gemini-2.5-flash")
 
-if not API_KEY:
-	print("ERROR: GOOGLE_API_KEY not set. Set it in your environment (PowerShell: $env:GOOGLE_API_KEY = '...')", file=sys.stderr)
-	raise SystemExit(1)
-
-# Configure client
-# Create client. The google genai client can pick up credentials from env, but we pass the key explicitly if available.
+# Global client holder (initialized lazily)
 client = None
 model_fallback = None
-try:
-	# Prefer the newer Client API if available
-	if hasattr(genai, "Client"):
-		client_kwargs = {}
-		if API_KEY:
-			client_kwargs["api_key"] = API_KEY
-		client = genai.Client(**client_kwargs)
-	else:
-		# older API: configure + GenerativeModel
-		if hasattr(genai, "configure"):
-			genai.configure(api_key=API_KEY)
-		if hasattr(genai, "GenerativeModel"):
-			model_fallback = genai.GenerativeModel
-except Exception as e:
-	print("Failed to initialize genai client/model:", e, file=sys.stderr)
-	raise
+_client_initialized = False
 
 
-# --- Model and Image Loading ---
-image_file_name = "label3.png"  # change to your file if needed
-img_path = Path(image_file_name)
-if not img_path.exists():
-	print(f"Image not found: {img_path}\nPlace your image as '{image_file_name}' or update the script.", file=sys.stderr)
-	raise SystemExit(1)
+def _initialize_client():
+	"""Lazily initialize the Gemini client on first use."""
+	global client, model_fallback, _client_initialized
+	
+	if _client_initialized:
+		return  # Already tried to initialize
+	
+	_client_initialized = True
+	
+	API_KEY = os.environ.get("GOOGLE_API_KEY")
+	if not API_KEY:
+		raise RuntimeError("GOOGLE_API_KEY not set in environment. Set it in your shell: $env:GOOGLE_API_KEY = '...'")
+	
+	try:
+		# Prefer the newer Client API if available
+		if hasattr(genai, "Client"):
+			client_kwargs = {}
+			if API_KEY:
+				client_kwargs["api_key"] = API_KEY
+			client = genai.Client(**client_kwargs)
+		else:
+			# older API: configure + GenerativeModel
+			if hasattr(genai, "configure"):
+				genai.configure(api_key=API_KEY)
+			if hasattr(genai, "GenerativeModel"):
+				model_fallback = genai.GenerativeModel
+	except Exception as e:
+		raise RuntimeError(f"Failed to initialize genai client/model: {e}")
 
-img = Image.open(img_path)
 
 # --- The Prompt ---
 prompt = """
@@ -90,55 +92,34 @@ def _image_to_bytes(pil_image, fmt="PNG"):
 
 
 def main():
-	print(f"Analyzing {image_file_name} with model {MODEL_NAME}...")
-
-	# Use the Client.models.generate_content API pattern (per AI Studio examples).
-	# We'll provide contents as a list where the prompt is first and the image bytes second.
+	"""
+	Standalone script mode: analyze a local image file (label3.png).
+	This is for testing the VLM directly via command line.
+	For backend integration, use analyze_image_bytes() which accepts image bytes directly.
+	"""
+	image_file_name = "label3.png"
+	img_path = Path(image_file_name)
+	if not img_path.exists():
+		print(f"Image not found: {img_path}\nPlace your image as '{image_file_name}' in the vlm/ directory.", file=sys.stderr)
+		raise SystemExit(1)
+	
+	img = Image.open(img_path)
 	img_buf = _image_to_bytes(img)
 	img_buf.seek(0)
 	image_bytes = img_buf.read()
+	
+	print(f"Analyzing {image_file_name} with model {MODEL_NAME}...")
+	
+	try:
+		result = analyze_image_bytes(image_bytes)
+		print("\n--- Analysis Result ---")
+		import json
+		print(json.dumps(result, indent=2))
+		print("---------------------\n")
+	except Exception as e:
+		print(f"Analysis failed: {e}", file=sys.stderr)
+		raise SystemExit(1)
 
-	attempt_errors = []
-
-	# Choose API path depending on what's initialized above
-	if client is not None and hasattr(client, "models"):
-		try:
-			print("Using Client.models.generate_content() path")
-			response = client.models.generate_content(
-				model=MODEL_NAME,
-				contents=[
-					{"type": "text", "text": prompt},
-					{"type": "image", "image": {"image_bytes": image_bytes}},
-				],
-			)
-			print_output(response)
-			return
-		except Exception as e:
-			attempt_errors.append(("client.generate_content", e))
-	elif model_fallback is not None:
-		try:
-			print("Using GenerativeModel.generate_content() fallback path")
-			model = model_fallback(MODEL_NAME)
-			# Older API often accepts a list with prompt string and PIL image or bytes
-			try:
-				resp = model.generate_content([prompt, image_bytes])
-			except Exception:
-				# try PIL image
-				resp = model.generate_content([prompt, img])
-			print_output(resp)
-			return
-		except Exception as e:
-			attempt_errors.append(("model_fallback.generate_content", e))
-	else:
-		attempt_errors.append(("no_client_or_model", RuntimeError("no usable genai client or model available")))
-
-	# If we get here none of the attempts worked. Print helpful debugging information.
-	print("All attempts to call the model failed. See errors below:", file=sys.stderr)
-	for kind, err in attempt_errors:
-		print(f"- Attempt ({kind}) raised: {err!r}", file=sys.stderr)
-	print("\nCommon fixes:\n - Ensure your google-generativeai package is up-to-date\n - Confirm the MODEL_NAME matches a multimodal model in your AI Studio account (use full name like 'models/...' if required)\n - If AI Studio provides a sample Python snippet for your model, paste/confirm it and adapt the call accordingly.", file=sys.stderr)
-	print("\nNo local fallback will be attempted because you requested Gemini-only operation.", file=sys.stderr)
-	raise SystemExit(2)
 
 
 def print_output(resp):
@@ -216,6 +197,93 @@ def _save_image_bytes(b: bytes, out_name: str = "gemini_output.png"):
 		print("Failed to save image bytes:", e, file=sys.stderr)
 
 
+def analyze_image_bytes(image_bytes: bytes, model_name: str = None) -> dict:
+	"""
+	Accepts raw image bytes and returns a parsed result (dict).
+	
+	Args:
+		image_bytes: Raw image file bytes (PNG, JPEG, etc.)
+		model_name: Optional override for model name (defaults to env var)
+	
+	Returns:
+		dict: Parsed JSON result from the model with keys:
+			- product_name: str or None
+			- nutrition_facts: dict (calories, total_fat, sodium, total_sugars) or None
+			- ingredients: str or None
+			- allergens: list or None
+	
+	Raises:
+		RuntimeError: If model call fails or API key not set
+		json.JSONDecodeError: If response cannot be parsed as JSON
+	"""
+	import json
+	
+	# Initialize client on first call
+	_initialize_client()
+	
+	if model_name is None:
+		model_name = MODEL_NAME
+	
+	attempt_errors = []
+	
+	# Choose API path depending on what's initialized
+	if client is not None and hasattr(client, "models"):
+		try:
+			response = client.models.generate_content(
+				model=model_name,
+				contents=[
+					{"type": "text", "text": prompt},
+					{"type": "image", "image": {"image_bytes": image_bytes}},
+				],
+			)
+			# Extract text response
+			response_text = None
+			if hasattr(response, "text") and response.text:
+				response_text = response.text
+			elif hasattr(response, "content") and response.content:
+				response_text = response.content
+			
+			if response_text:
+				# Try to parse as JSON
+				parsed = json.loads(response_text)
+				return parsed
+			else:
+				raise RuntimeError("Model returned empty response")
+		except Exception as e:
+			attempt_errors.append(("client.models.generate_content", e))
+	
+	elif model_fallback is not None:
+		try:
+			model = model_fallback(model_name)
+			# Older API often accepts a list with prompt string and bytes/PIL image
+			try:
+				resp = model.generate_content([prompt, image_bytes])
+			except Exception:
+				# try PIL image conversion
+				img = Image.open(io.BytesIO(image_bytes))
+				resp = model.generate_content([prompt, img])
+			
+			response_text = None
+			if hasattr(resp, "text") and resp.text:
+				response_text = resp.text
+			elif hasattr(resp, "content") and resp.content:
+				response_text = resp.content
+			
+			if response_text:
+				parsed = json.loads(response_text)
+				return parsed
+			else:
+				raise RuntimeError("Model returned empty response")
+		except Exception as e:
+			attempt_errors.append(("model_fallback.generate_content", e))
+	else:
+		attempt_errors.append(("no_client_or_model", RuntimeError("no usable genai client or model available")))
+	
+	# If we get here, none of the attempts worked
+	error_msg = "All attempts to call the model failed:\n"
+	for kind, err in attempt_errors:
+		error_msg += f"  - {kind}: {repr(err)}\n"
+	raise RuntimeError(error_msg)
 
 
 

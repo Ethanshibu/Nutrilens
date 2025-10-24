@@ -1,6 +1,15 @@
+import sys
+from pathlib import Path
+
+# Add parent directories to sys.path so we can import vlm
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from fastapi import FastAPI
 from fastapi import APIRouter
-from routers import auth #imports the authentication routes
+from routers import auth  # imports the authentication routes
+from routers import label  # imports the label analysis routes
 from fastapi.middleware.cors import CORSMiddleware
 
 app=FastAPI()
@@ -14,8 +23,9 @@ app.add_middleware(
 )
 
 
-router =APIRouter()
+router = APIRouter()
 app.include_router(auth.router)
+app.include_router(label.router)
 
 @app.get("/")
 
