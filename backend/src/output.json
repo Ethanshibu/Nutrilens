@@ -1,0 +1,68 @@
+{
+  "product_summary": {
+    "product_name": "string | unknown",
+    "product_category": "food | cosmetic | household | supplement | unknown",
+    "confidence": 0.0
+  },
+
+  "ingredient_analysis": {
+    "recognized_ingredients": [
+      {
+        "name": "string",
+        "role": "preservative | sweetener | surfactant | flavor | colorant | active | unknown",
+        "toxicity_level": "low | moderate | high | unknown",
+        "notes": "short scientific explanation",
+        "confidence": 0.0
+      }
+    ],
+    "unrecognized_or_uncertain": [
+      {
+        "raw_text": "string",
+        "reason": "illegible | partial | ambiguous"
+      }
+    ]
+  },
+
+  "interaction_risks": {
+    "user_factors_considered": [
+      "lactose intolerance",
+      "peanut allergy",
+      "retinoid skincare use"
+    ],
+    "potential_interactions": [
+      {
+        "ingredient": "string",
+        "interacts_with": "string",
+        "risk_level": "low | moderate | high",
+        "mechanism": "biochemical or functional explanation",
+        "recommendation": "avoid | limit | safe with caution",
+        "confidence": 0.0
+      }
+    ]
+  },
+
+  "overall_risk_assessment": {
+    "risk_level": "low | moderate | high | unclear",
+    "summary": "one paragraph explanation",
+    "confidence": 0.0
+  },
+
+  "substitute_suggestions": [
+    {
+      "ingredient_to_replace": "string",
+      "reason": "toxicity | allergy | interaction risk",
+      "safer_alternatives": [
+        {
+          "name": "string",
+          "why_safer": "scientific or regulatory reason"
+        }
+      ],
+      "confidence": 0.0
+    }
+  ],
+
+  "disclaimer": {
+    "type": "informational",
+    "text": "This analysis is informational and not a medical diagnosis."
+  }
+}
