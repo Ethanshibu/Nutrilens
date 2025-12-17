@@ -3,14 +3,12 @@ import Home from "./pages/home";
 import SignIn from "./pages/signin";
 import SignUp from "./pages/signup";
 
+import Navbar from "./components/navbar";
+
 function App() {
   return (
     <Router>
-      <nav style={{ marginBottom: "20px" }}>
-        <Link to="/" style={{ marginRight: "10px" }}>Home</Link>
-        <Link to="/signin" style={{ marginRight: "10px" }}>Sign In</Link>
-        <Link to="/signup">Sign Up</Link>
-      </nav>
+      <Navbar />
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -20,5 +18,6 @@ function App() {
     </Router>
   );
 }
+
 
 export default App;

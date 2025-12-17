@@ -1,56 +1,115 @@
-import { useState } from "react";
-import "./signin.css"; // we'll create this file next
+import React, { useState } from "react";
+import "./SignIn.css"; // <-- separate CSS file (plain CSS)
 
-export default function SignIn() {
+export default function SignIn({ onSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setMessage("Signing in...");
+    setError("");
 
+    if (!username.trim() || !password) {
+      setError("Please enter both username and password.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/auth/signin", {
+      const res = await fetch("/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Signin failed");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.detail || data.message || "Sign in failed");
+        setLoading(false);
+        return;
       }
 
-      setMessage(data.message); // e.g. “Welcome back, Sanjay!”
+      // success: call callback or simple redirect (consumer handles)
+      setLoading(false);
+      if (onSuccess) onSuccess({ username, remember });
+      // else: you can redirect here, e.g. window.location = "/dashboard";
     } catch (err) {
-      setMessage(err.message);
+      setError("Network error. Check backend and try again.",err);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1>Sign In</h1>
-        <form onSubmit={handleSubmit}>
+    <div className="sw-container">
+      <div className="sw-card" role="region" aria-labelledby="signin-heading">
+        <div className="sw-brand">
+          <div className="sw-logo">S</div>
+          <h1 id="signin-heading" className="sw-title">Sign In</h1>
+          <p className="sw-sub">Welcome back — sign in to continue.</p>
+        </div>
+
+        <form className="sw-form" onSubmit={handleSubmit} noValidate>
+          {error && (
+            <div className="sw-alert" role="alert" aria-live="polite">
+              {error}
+            </div>
+          )}
+
+          <label className="sw-label" htmlFor="username">Username</label>
           <input
-            type="text"
-            placeholder="Username"
+            id="username"
+            name="username"
+            className="sw-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required
+            placeholder="your.username"
+            autoComplete="username"
+            disabled={loading}
           />
+
+          <label className="sw-label" htmlFor="password">Password</label>
           <input
+            id="password"
+            name="password"
             type="password"
-            placeholder="Password"
+            className="sw-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            placeholder="••••••••"
+            autoComplete="current-password"
+            disabled={loading}
           />
-          <button type="submit">Sign In</button>
+
+          <div className="sw-row">
+            <label className="sw-remember">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                disabled={loading}
+              />
+              <span>Remember me</span>
+            </label>
+
+            <a className="sw-link" href="/forgot">Forgot?</a>
+          </div>
+
+          <button
+            type="submit"
+            className={"sw-button " + (loading ? "sw-button--loading" : "")}
+            disabled={loading}
+            aria-disabled={loading}
+          >
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
         </form>
-        {message && <p className="message">{message}</p>}
+
+        <div className="sw-footer">
+          New here? <a className="sw-link sw-link--bold" href="/signup">Create an account</a>
+        </div>
       </div>
     </div>
   );

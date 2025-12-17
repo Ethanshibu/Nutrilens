@@ -24,7 +24,8 @@ export default function Home() {
       const data = await response.json();
       setMessage(data.report || "Analysis complete!");
     } catch (err) {
-      setMessage(err, "Error uploading image.");
+      setMessage("Error uploading image.",err);
+
     }
   };
 
