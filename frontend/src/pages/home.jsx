@@ -3,7 +3,7 @@ import CameraCapture from "../components/CameraCapture";
 import "./home.css";
 
 export default function Home() {
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null); //image is a base64 string
   const [message, setMessage] = useState("");
 
   const handleUpload = async () => {
@@ -11,9 +11,9 @@ export default function Home() {
 
     setMessage("Analyzing image...");
 
-    // Later: send to FastAPI endpoint that performs OCR + LLM analysis
+    // Later: send to FastAPI endpoint that performs LLM analysis
     const formData = new FormData();
-    const blob = await fetch(image).then((res) => res.blob());
+    const blob = await fetch(image).then((res) => res.blob()); //you take the base64 string and convert it to a blob
     formData.append("file", blob, "label.jpg");
 
     try {
@@ -21,11 +21,13 @@ export default function Home() {
         method: "POST",
         body: formData,
       });
+
+      
       const data = await response.json();
       setMessage(data.report || "Analysis complete!");
     } catch (err) {
-      setMessage("Error uploading image.",err);
-
+      setMessage("Error uploading image.");
+      console.log(err);
     }
   };
 
