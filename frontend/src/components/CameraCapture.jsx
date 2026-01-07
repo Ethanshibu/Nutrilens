@@ -151,7 +151,7 @@ export default function CameraCapture({ onCapture }) {
                 disabled={loading}
                 style={{ opacity: loading ? 0.6 : 1 }}
               >
-                {loading ? "⏳ Analyzing..." : "📊 Analyze Label"}
+                {loading ? "⏳ Analyzing..." : "Analyze Label"}
               </button>
             )}
 
