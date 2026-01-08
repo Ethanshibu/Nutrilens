@@ -1,124 +1,72 @@
-"""
-Label analysis router — handles image uploads and returns nutrition/ingredient analysis.
-Integrates with the VLM (vlm.vlm) to process food label images using Google Generative AI.
-"""
-
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from fastapi.responses import JSONResponse
-from fastapi.concurrency import run_in_threadpool
-import sys
+from google import genai
+from google.genai import types
+from routers import label
 import os
-from pathlib import Path
+from fastapi import APIRouter,UploadFile,File,HTTPException
 
-# Add parent directories to sys.path so we can import vlm
-project_root = Path(__file__).parent.parent.parent
-vlm_path = project_root / "vlm"
-if str(vlm_path) not in sys.path:
-    sys.path.insert(0, str(vlm_path))
+router=APIRouter(prefix="/api/v1/label", tags=["Label Analysis"])
+client=genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-try:
-    import vlm as vlm_module
-except ImportError as e:
-    print(f"Warning: Could not import vlm module: {e}", file=sys.stderr)
-    vlm_module = None
+SYSTEM_PROMPT="""
+You are a toxicology analysis assistant.
 
-router = APIRouter(prefix="/api/v1/label", tags=["Label Analysis"])
+You are given an IMAGE of a product label.
 
-# Constants
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-ALLOWED_CONTENT_TYPES = {
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "image/gif",
-    "image/webp",
-}
+Your task:
+- Visually read the label
+- Identify ingredients with known toxicological, allergenic, or interaction risks
+- Explain risks using neutral, scientific language
+- Assess confidence explicitly
+- Suggest safer ingredient alternatives where appropriate
 
+Rules:
+- Return ONLY valid JSON
+- Do NOT provide medical diagnoses
+- Clearly separate facts from inference
+- Use "unknown" when information is insufficient
+"""
 
 @router.post("/analyze")
 async def analyze_label(file: UploadFile = File(...)):
-    """
-    Analyze a food label image and extract nutrition/ingredient information.
-    
-    Accepts:
-        - multipart/form-data with 'file' field (image)
-    
-    Returns:
-        JSON object with:
-            - product_name: str or null
-            - nutrition_facts: dict or null (keys: calories, total_fat, sodium, total_sugars)
-            - ingredients: str or null
-            - allergens: array or null
-    
-    Errors:
-        - 400: Invalid file type or too large
-        - 500: Model analysis failed
-        - 503: VLM module not available
-    """
-    
-    # Check VLM availability
-    if vlm_module is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="VLM module not available. Check GOOGLE_API_KEY is set in environment.",
-        )
-    
-    # Validate file type
-    if file.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_CONTENT_TYPES)}",
-        )
-    
-    # Read file and check size
+    # Basic validation
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    image_bytes = await file.read()
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="Empty image file")
+
     try:
-        file_content = await file.read()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part(text=SYSTEM_PROMPT),
+                        types.Part(
+                            inline_data=types.Blob(
+                                mime_type=file.content_type,
+                                data=image_bytes,
+                            )
+                        ),
+                    ],
+                )
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            ),
+        )
+        print(response.text)
+        if response.parsed is not None:
+            return response.parsed
+        return{
+            "summary":response.text,
+            "confidence":"unknown",
+            "note":"Model output was not strict JSON"
+        }
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to read file: {e}",
+            status_code=500,
+            detail=f"Gemini analysis failed"
         )
-    
-    if len(file_content) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size: {MAX_FILE_SIZE / 1024 / 1024} MB",
-        )
-    
-    if len(file_content) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded file is empty",
-        )
-    
-    # Call VLM in threadpool to avoid blocking event loop
-    try:
-        result = await run_in_threadpool(
-            vlm_module.analyze_image_bytes, file_content
-        )
-        return JSONResponse(content=result, status_code=200)
-    except RuntimeError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Model analysis failed: {str(e)}",
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error during analysis: {str(e)}",
-        )
-
-
-@router.get("/health")
-async def health_check():
-    """
-    Quick health check — confirms label analyzer is available.
-    """
-    vlm_available = vlm_module is not None
-    google_api_key_set = os.environ.get("GOOGLE_API_KEY") is not None
-    
-    return {
-        "status": "ok" if (vlm_available and google_api_key_set) else "unavailable",
-        "vlm_module_loaded": vlm_available,
-        "google_api_key_set": google_api_key_set,
-    }

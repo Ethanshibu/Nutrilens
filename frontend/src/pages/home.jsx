@@ -2,8 +2,10 @@ import { useState } from "react";
 import CameraCapture from "../components/CameraCapture";
 import "./home.css";
 
+const API_BASE_URL = "http://localhost:8000";
+
 export default function Home() {
-  const [image, setImage] = useState(null); //image is a base64 string
+  const [image, setImage] = useState(null); // base64 string
   const [message, setMessage] = useState("");
 
   const handleUpload = async () => {
@@ -11,23 +13,38 @@ export default function Home() {
 
     setMessage("Analyzing image...");
 
-    // Later: send to FastAPI endpoint that performs LLM analysis
     const formData = new FormData();
-    const blob = await fetch(image).then((res) => res.blob()); //you take the base64 string and convert it to a blob
+    const blob = await fetch(image).then((res) => res.blob());
     formData.append("file", blob, "label.jpg");
 
     try {
-      const response = await fetch("http://localhost:8000/analyze", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/label/analyze`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       const data = await response.json();
-      setMessage(data.report || "Analysis complete!");
+
+      // Display something meaningful from Gemini output
+      if (!data) {
+        setMessage("Model returned no data. Try again with clearer image.");
+      } else if (data.summary) {
+        setMessage(data.summary);
+      } else {
+        setMessage(JSON.stringify(data, null, 2));
+      }
+
+
     } catch (err) {
-      setMessage("Error uploading image.");
-      console.log(err);
+      console.error(err);
+      setMessage("Error analyzing image.");
     }
   };
 
@@ -46,7 +63,12 @@ export default function Home() {
         </button>
       )}
 
-      {message && <p className="message">{message}</p>}
+      {message && (
+        <div className="report-container">
+          <pre className="message">{message}</pre>
+        </div>
+      )}
+
     </div>
   );
 }
