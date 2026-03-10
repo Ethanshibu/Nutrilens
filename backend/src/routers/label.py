@@ -9,7 +9,6 @@ client=genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 SYSTEM_PROMPT="""
 You are a toxicology analysis assistant.
-
 You are given an IMAGE of a product label.
 
 Your task:
