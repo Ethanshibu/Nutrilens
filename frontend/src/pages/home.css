@@ -1,101 +1,593 @@
-body {
+/* Global reset for home page */
+* {
   margin: 0;
   padding: 0;
-  font-family: "Inter", sans-serif;
-  background: #fff;
-  color: #000;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #ffffff;
+  color: #0b0b0b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .home-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
-  min-height: 100vh;
+  padding: 3rem 2rem;
+  min-height: calc(100vh - 64px);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .title {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+  text-align: center;
+  background: linear-gradient(135deg, #0b0b0b 0%, #333 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  color: #6b6b6b;
+  margin-bottom: 3rem;
   text-align: center;
-  max-width: 400px;
+  max-width: 600px;
+  line-height: 1.6;
 }
 
+/* Camera container */
 .camera-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 2rem;
 }
 
 .camera-feed {
-  width: 300px;
-  height: 300px;
-  border: 2px solid #000;
-  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  aspect-ratio: 1;
+  border: 3px solid #0b0b0b;
+  border-radius: 16px;
   object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .preview-img {
-  width: 300px;
+  width: 100%;
+  max-width: 400px;
   height: auto;
-  border: 2px solid #000;
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  border: 3px solid #0b0b0b;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
+.btn-group {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Buttons */
 .btn {
-  background-color: #000;
-  color: #fff;
+  background-color: #0b0b0b;
+  color: #ffffff;
   border: none;
-  padding: 0.7rem 1.4rem;
-  border-radius: 8px;
+  padding: 0.875rem 2rem;
+  border-radius: 12px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 1rem;
-  transition: 0.2s;
+  margin-top: 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.01em;
 }
 
 .btn:hover {
   background-color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn.secondary {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
+  background-color: #ffffff;
+  color: #0b0b0b;
+  border: 2px solid #0b0b0b;
+  box-shadow: none;
 }
 
 .btn.secondary:hover {
   background-color: #f5f5f5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.message {
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
-  text-align: left;
-  max-width: 420px;
+.btn.upload {
   width: 100%;
-
-  /* CRITICAL: prevent overflow */
-  white-space: pre-wrap;      /* wrap long lines */
-  word-wrap: break-word;      /* legacy support */
-  overflow-wrap: break-word;  /* modern */
-
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-
-  box-sizing: border-box;
+  max-width: 400px;
+  padding: 1rem 2rem;
+  font-size: 1.05rem;
+  background: linear-gradient(135deg, #0b0b0b 0%, #2d2d2d 100%);
 }
+
+.btn.upload:hover {
+  background: linear-gradient(135deg, #2d2d2d 0%, #0b0b0b 100%);
+}
+
+.btn.primary {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Report container */
 .report-container {
   width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Report Card */
+.report-card {
+  width: 100%;
+  background: #ffffff;
+  border: 2px solid #e8e8e8;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.report-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0b0b0b;
+  margin: 0;
+}
+
+.confidence-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.confidence-high {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.confidence-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.confidence-low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Report Sections */
+.report-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0b0b0b;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0b0b0b;
+  line-height: 1.4;
+}
+
+.summary-section {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #0b0b0b;
+}
+
+.summary-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #374151;
+}
+
+/* User's Allergens - CRITICAL WARNING */
+.user-allergen-warning {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 4px solid #dc2626;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(220, 38, 38, 0.5);
+  }
+}
+
+.user-allergen-warning .section-title {
+  color: #ffffff;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.warning-text {
+  color: #fecaca;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.user-allergen-badge {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #ffffff;
+  color: #7f1d1d;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.warning-footer {
+  color: #ffffff;
+  font-size: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.warning-footer strong {
+  font-size: 1.2rem;
+  text-decoration: underline;
+}
+
+/* General Allergens */
+.allergen-section {
+  background: #fef2f2;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #dc2626;
+}
+
+.allergen-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.allergen-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #dc2626;
+  color: #ffffff;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Toxicology Risks */
+.risks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.risk-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.risk-card:hover {
+  border-color: #0b0b0b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.risk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.risk-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.risk-icon {
+  font-size: 1.5rem;
+}
+
+.risk-ingredient {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0b0b0b;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.risk-level-badge {
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.risk-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+.alternatives {
+  background: #f0fdf4;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #10b981;
+}
+
+.alternatives strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #065f46;
+  font-size: 0.9rem;
+}
+
+.alternatives-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #374151;
+}
+
+.alternatives-list li {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Ingredients Grid */
+.ingredients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.ingredient-item {
+  background: #f9fafb;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.ingredient-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* Report Actions */
+.report-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f0f0f0;
   display: flex;
   justify-content: center;
 }
+
+/* Error message */
+.error-message {
+  width: 100%;
+  padding: 1.5rem;
+  background: #fff5f5;
+  border: 2px solid #ff4444;
+  border-radius: 12px;
+  color: #7a1919;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.error-message strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+/* Loading state */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn.upload:disabled {
+  background: #666;
+  cursor: wait;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Header section */
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .camera-feed,
+  .preview-img {
+    max-width: 100%;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .report-card {
+    padding: 1.5rem;
+  }
+
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .report-title {
+    font-size: 1.5rem;
+  }
+
+  .risk-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ingredients-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .report-card {
+    padding: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .product-name {
+    font-size: 1.25rem;
+  }
+}
+
+/* Made with Bob */

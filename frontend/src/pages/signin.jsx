@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import "./SignIn.css"; // <-- separate CSS file (plain CSS)
+import { useNavigate } from "react-router-dom";
+import "./signin.css";
 
-export default function SignIn({ onSuccess }) {
+const API_BASE_URL = "http://localhost:8000";
+
+export default function SignIn() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -19,7 +23,7 @@ export default function SignIn({ onSuccess }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/auth/signin", {
+      const res = await fetch(`${API_BASE_URL}/auth/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim(), password }),
@@ -32,12 +36,15 @@ export default function SignIn({ onSuccess }) {
         return;
       }
 
-      // success: call callback or simple redirect (consumer handles)
+      // Success: store user data and redirect to home
+      localStorage.setItem("username", data.username);
+      localStorage.setItem("name", data.name);
+      localStorage.setItem("allergens", JSON.stringify(data.allergens || []));
+      
       setLoading(false);
-      if (onSuccess) onSuccess({ username, remember });
-      // else: you can redirect here, e.g. window.location = "/dashboard";
+      navigate("/");
     } catch (err) {
-      setError("Network error. Check backend and try again.",err);
+      setError("Network error. Check backend and try again.");
       setLoading(false);
     }
   }
