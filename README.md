@@ -1,99 +1,159 @@
-# Nutrilens
+# 🔬 Nutrilens - AI-Powered Food Label Toxicology Analyzer
 
-Nutrilens is a full-stack application for analyzing food labels using computer vision and generative AI. Capture an image of a food label via your webcam, and the app extracts nutritional information, ingredients, and allergen data using Google's Gemini Vision model.
+Nutrilens is a full-stack web application that uses AI-powered computer vision to analyze food product labels and provide comprehensive toxicology reports. Capture an image of any food label, and get instant insights about ingredients, potential health risks, allergens, and safer alternatives.
 
-## Project Structure
+## ✨ Features
+
+- **🎥 Real-time Camera Capture**: Use your device's camera to capture product labels
+- **🤖 AI-Powered Analysis**: Leverages Google's Gemini 2.5 Flash Vision model for accurate label reading
+- **🧪 Toxicology Assessment**: Identifies ingredients with potential health risks and rates them (low/medium/high)
+- **⚠️ Allergen Detection**: Automatically detects common allergens in products
+- **👤 Personalized Alerts**: Set your allergen profile and get critical warnings when your allergens are detected
+- **💡 Safer Alternatives**: Suggests healthier ingredient alternatives for risky components
+- **📊 Detailed Reports**: Comprehensive analysis with confidence ratings and scientific explanations
+- **🔐 User Authentication**: Secure signup/signin with bcrypt password hashing
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
+
+## 🏗️ Project Structure
 
 ```
 Nutrilens/
-├── backend/                  # FastAPI backend server
+├── backend/                      # FastAPI backend server
 │   ├── src/
-│   │   ├── app.py           # Main FastAPI app
-│   │   ├── database.py      # MongoDB connection setup
-│   │   ├── users.py         # (placeholder)
+│   │   ├── app.py               # Main FastAPI application
+│   │   ├── database.py          # MongoDB connection and configuration
+│   │   ├── users.py             # User-related utilities (placeholder)
 │   │   └── routers/
-│   │       ├── auth.py      # Authentication endpoints (signup/signin)
-│   │       └── label.py     # Label analysis endpoints
+│   │       ├── auth.py          # Authentication endpoints (signup/signin/profile)
+│   │       └── label.py         # Label analysis endpoints with Gemini integration
 │   └── test/
-│       └── ocrTest.py       # OCR tests
-├── frontend/                 # React + Vite frontend
+│       ├── ocrTest.py           # OCR testing utilities
+│       ├── test0.png            # Test image samples
+│       └── test1.png
+├── frontend/                     # React + Vite frontend
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   ├── theme.js
-│   │   └── components/
-│   │       └── CameraCapture.jsx
-│   ├── pages/
-│   │   ├── home.jsx / home.css
-│   │   ├── signin.jsx / signin.css
-│   │   └── signup.jsx / signup.css
+│   │   ├── App.jsx              # Main app component with routing
+│   │   ├── main.jsx             # React entry point
+│   │   ├── theme.js             # Theme configuration
+│   │   ├── components/
+│   │   │   ├── CameraCapture.jsx # Webcam capture component
+│   │   │   └── Navbar.jsx       # Navigation bar
+│   │   └── pages/
+│   │       ├── home.jsx         # Main analysis page
+│   │       ├── signin.jsx       # Sign in page
+│   │       ├── signup.jsx       # Sign up page
+│   │       └── profile.jsx      # User profile & allergen management
+│   ├── public/
+│   ├── index.html
 │   └── vite.config.js
-├── vlm/                      # Vision Language Model logic
-│   └── vlm.py               # Gemini integration (refactored as callable function)
-├── requirements.txt         # Python dependencies
-└── .env                     # Environment variables (secrets)
+├── requirements.txt              # Python dependencies
+├── package.json                  # Root package.json
+├── .gitignore
+└── .env                         # Environment variables (not in repo)
 ```
 
-## Prerequisites
+## 🔧 Prerequisites
 
 - **Python 3.10+** (tested with 3.11, 3.12)
 - **Node.js 16+** (recommend 18+) and npm
-- **MongoDB** instance (local or MongoDB Atlas cloud)
-- **Google API key** with Gemini Vision model access
+- **MongoDB** instance (local or MongoDB Atlas)
+- **Google Gemini API key** with access to Gemini 2.5 Flash model
 
-## Setup
+## 🚀 Setup Instructions
 
-### 1. Clone and navigate to project
+### 1. Clone the Repository
 
-```powershell
-cd 'C:\Users\HP\Documents\Projects\Nutrilens'
+```bash
+git clone <repository-url>
+cd Nutrilens
 ```
 
-### 2. Create and activate Python virtual environment
+### 2. Backend Setup
 
+#### Create Python Virtual Environment
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**Windows (PowerShell):**
 ```powershell
-# Create venv
 python -m venv venv
-
-# Activate venv (Windows PowerShell)
 .\venv\Scripts\Activate.ps1
 ```
 
-If you get an execution policy error:
+If you encounter an execution policy error on Windows:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-Then retry the activation command.
+#### Install Python Dependencies
 
-### 3. Install Python dependencies
-
-```powershell
+```bash
 # Upgrade pip
 python -m pip install --upgrade pip
 
-# Install from requirements.txt (now includes pymongo, bcrypt, google-generativeai)
-python -m pip install -r requirements.txt
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+**Key Dependencies:**
+- `fastapi` - Web framework
+- `uvicorn` - ASGI server
+- `pymongo` - MongoDB driver
+- `bcrypt` - Password hashing
+- `google-generativeai` - Gemini API client
+- `python-dotenv` - Environment variable management
+- `pillow` - Image processing
 
-Ensure `.env` file exists in the project root with:
+### 3. Frontend Setup
 
-```properties
-MONGO_URL="mongodb+srv://user:password@cluster.mongodb.net/"
-GOOGLE_API_KEY="your_google_gemini_api_key"
-SECRET_KEY="your_secret_key_here"
+```bash
+cd frontend
+npm install
 ```
 
-**Getting credentials:**
-- **MongoDB**: Use MongoDB Atlas (cloud) or run locally. Connection string format: `mongodb://localhost:27017` (local) or `mongodb+srv://...` (Atlas).
-  - **Important**: If using Atlas, allow your IP in **Network Access** > **Add Current IP** or allow `0.0.0.0/0` for development.
-- **Google API Key**: Get from [Google AI Studio](https://aistudio.google.com/apikey). Ensure "Gemini 1.5 Flash" or "Gemini 2.5 Flash" model is available in your API key.
+**Key Dependencies:**
+- `react` & `react-dom` - UI framework
+- `react-router-dom` - Routing
+- `react-webcam` - Camera capture
+- `vite` - Build tool and dev server
 
-### 5. Verify MongoDB connection (optional but recommended)
+### 4. Environment Configuration
 
-Create a quick test script `backend/src/test_mongo.py`:
+Create a `.env` file in the project root:
+
+```env
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/
+GEMINI_API_KEY=your_gemini_api_key_here
+SECRET_KEY=your_secret_key_for_sessions
+```
+
+#### Getting Your Credentials
+
+**MongoDB:**
+- **Option 1 (Cloud)**: Create a free cluster at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+  - Get connection string from "Connect" → "Connect your application"
+  - **Important**: Whitelist your IP in Network Access settings
+- **Option 2 (Local)**: Install MongoDB locally
+  - Connection string: `mongodb://localhost:27017`
+
+**Google Gemini API Key:**
+- Visit [Google AI Studio](https://aistudio.google.com/apikey)
+- Create a new API key
+- Ensure you have access to Gemini 2.5 Flash model
+
+**Secret Key:**
+- Generate a secure random key:
+  ```python
+  python -c "import secrets; print(secrets.token_urlsafe(32))"
+  ```
+
+### 5. Verify MongoDB Connection (Optional)
+
+Create `backend/src/test_mongo.py`:
 
 ```python
 from dotenv import load_dotenv
@@ -102,42 +162,30 @@ from pymongo import MongoClient
 
 load_dotenv()
 mongo_url = os.getenv("MONGO_URL")
-if not mongo_url:
-    print("MONGO_URL missing from .env")
-    exit(1)
 
 try:
     client = MongoClient(mongo_url, serverSelectionTimeoutMS=5000)
-    info = client.admin.command("ping")
-    print("✓ MongoDB connection OK")
+    client.admin.command('ping')
+    print("✓ MongoDB connection successful")
     print("Databases:", client.list_database_names())
 except Exception as e:
-    print("✗ MongoDB connection failed:", e)
+    print(f"✗ MongoDB connection failed: {e}")
 ```
 
 Run it:
-```powershell
-cd .\backend\src
+```bash
+cd backend/src
 python test_mongo.py
 ```
 
-### 6. Install Node dependencies (frontend)
+## 🎮 Running the Application
 
-In a new PowerShell terminal:
+### Start Backend Server
 
-```powershell
-cd .\frontend
-npm install
-```
+From the project root with virtual environment activated:
 
-## Running the Application
-
-### Backend (FastAPI)
-
-From the project root with venv activated:
-
-```powershell
-cd .\backend\src
+```bash
+cd backend/src
 python -m uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -147,22 +195,16 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 INFO:     Application startup complete
 ```
 
-**API Documentation**: Visit `http://127.0.0.1:8000/docs` (Swagger UI) or `http://127.0.0.1:8000/redoc` (ReDoc).
+**API Documentation:**
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
 
-**Key endpoints:**
-- `GET /` — Root health check
-- `POST /auth/signup` — Create user account
-- `POST /auth/signin` — Login user
-- `GET /auth/test` — Test auth router
-- `POST /api/v1/label/analyze` — Upload image and analyze (main feature)
-- `GET /api/v1/label/health` — Check label analyzer health
+### Start Frontend Development Server
 
-### Frontend (React + Vite)
+In a new terminal:
 
-From the project root in a new PowerShell terminal:
-
-```powershell
-cd .\frontend
+```bash
+cd frontend
 npm run dev
 ```
 
@@ -174,85 +216,121 @@ VITE v7.1.7  ready in 123 ms
 ➜  press h + enter to show help
 ```
 
-Open `http://localhost:5173/` in your browser. You should see the Nutrilens app with navigation links (Home, Sign In, Sign Up).
+Open http://localhost:5173 in your browser.
 
-## Using the Label Analysis Feature
+## 📖 API Endpoints
 
-1. **Navigate to Home page** in the frontend (or relevant page with camera component).
-2. **Capture or upload an image** of a food label (via `CameraCapture` component).
-3. **Submit the image** — the frontend POSTs to `http://localhost:8000/api/v1/label/analyze`.
-4. **View results** — the backend calls Google Gemini Vision, extracts JSON, and returns:
-   ```json
-   {
-     "product_name": "Example Brand Cereal",
-     "nutrition_facts": {
-       "calories": "150",
-       "total_fat": "2g",
-       "sodium": "200mg",
-       "total_sugars": "12g"
-     },
-     "ingredients": "Whole grain oats, sugar, salt, ...",
-     "allergens": ["gluten", "soy"]
-   }
+### Authentication (`/auth`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/signup` | Create new user account |
+| POST | `/auth/signin` | Sign in user |
+| GET | `/auth/profile/{username}` | Get user profile |
+| PUT | `/auth/profile/{username}` | Update user profile & allergens |
+| GET | `/auth/test` | Test auth router |
+
+### Label Analysis (`/api/v1/label`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/label/analyze` | Analyze product label image |
+| GET | `/api/v1/label/health` | Health check |
+
+## 🎯 Using the Application
+
+### 1. Create an Account
+- Navigate to Sign Up page
+- Enter username, password, and optional name
+- Optionally add your allergens during signup
+
+### 2. Set Up Your Allergen Profile
+- Go to Profile page after signing in
+- Select common allergens or add custom ones
+- Save your profile
+
+### 3. Analyze a Product Label
+- Go to Home page
+- Click "Capture" to take a photo of a product label
+- Click "Generate Report" to analyze
+- View comprehensive toxicology report including:
+  - Product name
+  - Toxicology risks (low/medium/high)
+  - All detected allergens
+  - **Critical warnings** if your allergens are detected
+  - Ingredient list
+  - Safer alternatives
+  - Confidence rating
+
+### 4. Understanding the Report
+
+**Risk Levels:**
+- 🚨 **High**: Significant health concerns, avoid if possible
+- ⚡ **Medium**: Moderate concerns, use with caution
+- ✓ **Low**: Minimal concerns, generally safe
+
+**User Allergen Warnings:**
+- If the product contains any of your allergens, you'll see a prominent red warning
+- The system will highlight exactly which of your allergens were detected
+- A clear "DO NOT CONSUME" message will be displayed
+
+## 🔒 Security Notes
+
+⚠️ **Important Security Practices:**
+
+1. **Never commit `.env` file** - It's already in `.gitignore`
+2. **Use strong passwords** - Passwords are hashed with bcrypt
+3. **Rotate API keys** before deploying to production
+4. **Restrict CORS** in production:
+   ```python
+   # In backend/src/app.py
+   app.add_middleware(
+       CORSMiddleware,
+       allow_origins=["https://yourdomain.com"],  # Specific domain
+       allow_credentials=True,
+       allow_methods=["*"],
+       allow_headers=["*"],
+   )
    ```
 
-## Environment Variables Reference
+## 🧪 Testing
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `MONGO_URL` | MongoDB connection string | `mongodb://localhost:27017` or `mongodb+srv://user:pass@cluster...` |
-| `GOOGLE_API_KEY` | Google Gemini API key | `AIzaSy...` |
-| `SECRET_KEY` | FastAPI secret (for session/auth) | `your_secret_key_here` |
-| `GOOGLE_MODEL` | (Optional) Override Gemini model name | `gemini-2.5-flash` (default if omitted) |
+### Test Backend Endpoints
 
-## Development Workflow
+**Using curl:**
+```bash
+# Test root
+curl http://127.0.0.1:8000/
 
-### Running both backend and frontend simultaneously
+# Test label health
+curl http://127.0.0.1:8000/api/v1/label/health
 
-**Terminal 1 (Backend):**
-```powershell
-# From project root
-.\venv\Scripts\Activate.ps1
-cd .\backend\src
-python -m uvicorn app:app --reload --host 0.0.0.0 --port 8000
+# Test label analysis
+curl -X POST -F "file=@path/to/image.jpg" \
+  "http://127.0.0.1:8000/api/v1/label/analyze?username=testuser"
 ```
 
-**Terminal 2 (Frontend):**
-```powershell
-# From project root
-cd .\frontend
-npm run dev
+**Using Python:**
+```python
+import requests
+
+# Test analysis
+with open('test_image.jpg', 'rb') as f:
+    files = {'file': f}
+    response = requests.post(
+        'http://127.0.0.1:8000/api/v1/label/analyze',
+        files=files,
+        params={'username': 'testuser'}
+    )
+    print(response.json())
 ```
 
-### Testing
+### Frontend Commands
 
-**Backend endpoints (using PowerShell):**
+```bash
+cd frontend
 
-Test root:
-```powershell
-Invoke-WebRequest -Uri http://127.0.0.1:8000/ | Select-Object -ExpandProperty Content
-```
-
-Test label health:
-```powershell
-Invoke-WebRequest -Uri http://127.0.0.1:8000/api/v1/label/health | Select-Object -ExpandProperty Content
-```
-
-Test label analysis (with a local image):
-```powershell
-$form = @{
-    file = Get-Item 'C:\path\to\image.png'
-}
-Invoke-RestMethod -Uri http://127.0.0.1:8000/api/v1/label/analyze -Method Post -Form $form
-```
-
-### Linting & Building
-
-**Frontend:**
-```powershell
-cd .\frontend
-
-# Lint
+# Run linter
 npm run lint
 
 # Build for production
@@ -262,133 +340,177 @@ npm run build
 npm run preview
 ```
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### Backend won't start: `ModuleNotFoundError: No module named 'fastapi'`
+### Backend won't start: `ModuleNotFoundError`
 
-**Cause**: Python packages installed in wrong environment (e.g., Anaconda instead of venv).
+**Cause**: Virtual environment not activated or packages not installed.
 
-**Solution**: Ensure venv is activated:
-```powershell
-.\venv\Scripts\Activate.ps1
-python -c "import sys; print(sys.executable)"  # Should show .../venv/...
+**Solution**:
+```bash
+# Activate venv
+source venv/bin/activate  # macOS/Linux
+.\venv\Scripts\Activate.ps1  # Windows
+
+# Verify correct Python
+python -c "import sys; print(sys.executable)"
+
+# Reinstall packages
+pip install -r requirements.txt
 ```
 
-Then install packages:
-```powershell
-python -m pip install -r requirements.txt
-```
+### MongoDB Connection Timeout
 
-### MongoDB connection timeout
+**Causes & Solutions**:
+1. **Atlas IP Whitelist**: Add your IP in Network Access settings
+2. **Local MongoDB**: Ensure `mongod` is running
+3. **Connection String**: Verify format and credentials in `.env`
+4. **Firewall**: Check if port 27017 (local) or 27015-27017 (Atlas) is blocked
 
-**Cause**: IP not whitelisted (if using Atlas) or server unreachable.
+### Gemini API Errors
 
-**Solutions**:
-1. **Atlas**: Go to **Network Access** and add your IP (or `0.0.0.0/0` for dev).
-2. **Local MongoDB**: Ensure MongoDB is running: `mongod`.
-3. **Connection string**: Verify credentials and format in `.env`.
+**Common Issues**:
+1. **Invalid API Key**: Verify `GEMINI_API_KEY` in `.env`
+2. **Model Access**: Ensure your API key has access to `gemini-2.5-flash`
+3. **Rate Limits**: Free tier has usage limits
+4. **Image Format**: Ensure image is valid JPEG/PNG
 
-### Image analysis returns error 503: VLM module not available
+### CORS Errors
 
-**Cause**: `GOOGLE_API_KEY` not set or `google-generativeai` package not installed.
-
-**Solutions**:
-1. Ensure `.env` has `GOOGLE_API_KEY=your_key`.
-2. Verify package installed:
-   ```powershell
-   python -m pip show google-generativeai
-   ```
-3. Restart backend after setting environment variable.
-
-### CORS errors when frontend calls backend
-
-**Cause**: Frontend origin not allowed (unlikely given current CORS config).
-
-**Solution**: `app.py` currently allows all origins (`allow_origins=["*"]`). If restricted, update:
+**Solution**: Backend already allows all origins in development. If issues persist:
 ```python
+# backend/src/app.py
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 ```
 
-## Security Notes
+### Frontend Can't Connect to Backend
 
-⚠️ **Important**: The `.env` file contains sensitive credentials. **Do not commit to version control.**
+**Checklist**:
+- Backend is running on port 8000
+- Frontend is using correct API URL (`http://localhost:8000`)
+- No firewall blocking connections
+- Check browser console for specific errors
 
-1. Add `.env` to `.gitignore`:
-   ```
-   .env
-   .env.local
-   ```
+## 🏗️ Architecture Overview
 
-2. **Rotate secrets** before pushing to production or sharing the repo.
-
-3. For production:
-   - Use environment-specific secret management (AWS Secrets Manager, Azure Key Vault, etc.).
-   - Set `allow_origins` to specific frontend domain instead of `["*"]`.
-   - Use strong `SECRET_KEY` (e.g., `secrets.token_urlsafe(32)`).
-
-## Architecture Overview
-
-### Data Flow (Image Analysis)
+### Data Flow
 
 ```
-Frontend (React)
-  ↓ (captures image, shows loading)
-  ↓ POST /api/v1/label/analyze + image file
-  ↓
-Backend (FastAPI)
-  ↓ (validates file, calls VLM in threadpool)
-  ↓
-VLM (vlm.py)
-  ↓ (sends image bytes to Google Gemini Vision)
-  ↓
-Google Gemini API
-  ↓ (returns structured JSON: nutrition, ingredients, allergens)
-  ↓
-Backend (parses and returns JSON)
-  ↓
-Frontend (displays results)
+User captures image → Frontend (React)
+                          ↓
+                    POST /api/v1/label/analyze
+                          ↓
+                    Backend (FastAPI)
+                          ↓
+                    Gemini Vision API
+                          ↓
+                    JSON Response (toxicology data)
+                          ↓
+                    Frontend displays report
 ```
 
-### Authentication Flow
+### Technology Stack
 
-1. User signs up via `/auth/signup` → hashed password stored in MongoDB (Logins collection).
-2. User signs in via `/auth/signin` → credentials verified against stored hash.
-3. (Future: add JWT tokens for session management.)
+**Backend:**
+- FastAPI - Modern Python web framework
+- MongoDB - NoSQL database for user data
+- Google Gemini 2.5 Flash - Vision AI model
+- Bcrypt - Password hashing
+- Uvicorn - ASGI server
 
-## Next Steps / Enhancements
+**Frontend:**
+- React 19 - UI library
+- Vite - Build tool and dev server
+- React Router - Client-side routing
+- React Webcam - Camera integration
 
-- [ ] Add JWT-based authentication and session management
-- [ ] Store analysis results in MongoDB for history
-- [ ] Add caching for frequently analyzed products (UPC code lookup)
-- [ ] Improve VLM prompt for higher accuracy
-- [ ] Add user-specific history/favorites
-- [ ] Implement background job processing for heavy workloads (Celery + Redis)
-- [ ] Add unit and integration tests
-- [ ] Deploy backend to cloud (Heroku, AWS, GCP) and frontend to CDN (Vercel, Netlify)
-- [ ] Add dietary preference filtering (vegan, gluten-free, etc.)
+## 🚀 Deployment
 
-## Contributing
+### Backend Deployment Options
 
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make changes and commit: `git commit -am "Add feature"`
-3. Push: `git push origin feature/your-feature`
-4. Open a pull request.
+**Heroku:**
+```bash
+# Create Procfile
+echo "web: cd backend/src && uvicorn app:app --host 0.0.0.0 --port \$PORT" > Procfile
 
-## License
+# Deploy
+heroku create nutrilens-api
+git push heroku main
+```
 
-ISC (as per `package.json`)
+**Railway/Render:**
+- Set build command: `pip install -r requirements.txt`
+- Set start command: `cd backend/src && uvicorn app:app --host 0.0.0.0 --port $PORT`
+- Add environment variables
 
-## Contact
+### Frontend Deployment Options
 
-For questions or issues, open a GitHub issue or contact the maintainers.
+**Vercel:**
+```bash
+cd frontend
+npm run build
+vercel --prod
+```
+
+**Netlify:**
+```bash
+cd frontend
+npm run build
+netlify deploy --prod --dir=dist
+```
+
+**Update API URL** in production:
+```javascript
+// frontend/src/pages/home.jsx, signin.jsx, profile.jsx
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+```
+
+## 📈 Future Enhancements
+
+- [ ] JWT-based authentication with refresh tokens
+- [ ] Store analysis history in MongoDB
+- [ ] Product barcode/UPC lookup and caching
+- [ ] Nutrition facts extraction and visualization
+- [ ] Dietary preference filtering (vegan, keto, etc.)
+- [ ] Multi-language support
+- [ ] Export reports as PDF
+- [ ] Social sharing features
+- [ ] Mobile app (React Native)
+- [ ] Background job processing (Celery + Redis)
+- [ ] Unit and integration tests
+- [ ] CI/CD pipeline
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+ISC License - See package.json for details
+
+## 👥 Authors
+
+Built with ❤️ by the Nutrilens team
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Open a GitHub issue
+- Check existing documentation
+- Review troubleshooting section
 
 ---
 
-**Last Updated**: October 2025  
-**Status**: Development (MVP)
+**Last Updated**: March 2026  
+**Status**: Active Development  
+**Version**: 1.0.0
