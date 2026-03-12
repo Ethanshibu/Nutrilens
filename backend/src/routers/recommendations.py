@@ -95,6 +95,54 @@ async def get_purchase_history(username: str, limit: int = Query(10, ge=1, le=50
         "purchases": purchases
     }
 
+@router.delete("/purchase/{purchase_id}")
+async def delete_purchase(purchase_id: str, username: str = Query(...)):
+    """
+    Delete a purchase from user's history.
+    """
+    from bson import ObjectId
+    from bson.errors import InvalidId
+    
+    # Verify user exists
+    user = usertable.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        # Convert string to ObjectId
+        obj_id = ObjectId(purchase_id)
+        
+        # First check if purchase exists and belongs to user
+        purchase = purchasestable.find_one({
+            "_id": obj_id,
+            "username": username
+        })
+        
+        if not purchase:
+            print(f"Purchase not found: {purchase_id} for user: {username}")
+            raise HTTPException(status_code=404, detail="Purchase not found or unauthorized")
+        
+        # Delete the purchase
+        result = purchasestable.delete_one({
+            "_id": obj_id,
+            "username": username
+        })
+        
+        print(f"Delete result: {result.deleted_count} documents deleted")
+        
+        return {
+            "message": "Purchase deleted successfully",
+            "purchase_id": purchase_id
+        }
+    except InvalidId as e:
+        print(f"Invalid ObjectId: {purchase_id}, error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid purchase ID format: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error deleting purchase: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting purchase: {str(e)}")
+
 @router.post("/suggest")
 async def get_recommendations(request: RecommendationRequest):
     """
