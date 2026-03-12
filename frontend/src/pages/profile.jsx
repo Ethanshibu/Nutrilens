@@ -65,6 +65,30 @@ export default function Profile() {
     }
   };
 
+  const handleDeletePurchase = async (purchaseId) => {
+    if (!window.confirm("Are you sure you want to remove this purchase from your history?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/recommendations/purchase/${purchaseId}?username=${username}`,
+        { method: "DELETE" }
+      );
+
+      if (res.ok) {
+        setPurchaseHistory(prev => prev.filter(p => p._id !== purchaseId));
+        setMessage("Purchase removed successfully");
+        setTimeout(() => setMessage(""), 3000);
+      } else {
+        throw new Error("Failed to delete purchase");
+      }
+    } catch (err) {
+      setError("Failed to remove purchase. Please try again.");
+      setTimeout(() => setError(""), 3000);
+    }
+  };
+
   const toggleAllergen = (allergen) => {
     setAllergens(prev =>
       prev.includes(allergen)
@@ -252,7 +276,7 @@ export default function Profile() {
 
         {/* Purchase History Section */}
         <div className="purchase-history-section">
-          <h2 className="section-title">📦 Purchase History</h2>
+          <h2 className="section-title">Purchase History</h2>
           {loadingHistory ? (
             <p className="loading-text">Loading purchase history...</p>
           ) : purchaseHistory.length === 0 ? (
@@ -262,10 +286,19 @@ export default function Profile() {
               {purchaseHistory.map((purchase, idx) => (
                 <div key={purchase._id || idx} className="purchase-item">
                   <div className="purchase-header">
-                    <h3 className="purchase-product-name">{purchase.product_name}</h3>
-                    <span className="purchase-date">
-                      {new Date(purchase.purchased_at).toLocaleDateString()}
-                    </span>
+                    <div className="purchase-info">
+                      <h3 className="purchase-product-name">{purchase.product_name}</h3>
+                      <span className="purchase-date">
+                        {new Date(purchase.purchased_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePurchase(purchase._id)}
+                      className="delete-purchase-btn"
+                      title="Remove from history"
+                    >
+                      Remove
+                    </button>
                   </div>
                   {purchase.allergens && purchase.allergens.length > 0 && (
                     <div className="purchase-allergens">

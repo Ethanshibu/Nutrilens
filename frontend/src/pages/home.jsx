@@ -162,7 +162,7 @@ export default function Home() {
   return (
     <div className="home-container">
       <div className="header-section">
-        <h1 className="title">🔬 Toxicology Analyzer</h1>
+        <h1 className="title">Toxicology Analyzer</h1>
         <p className="subtitle">
           Capture a product label to get an instant AI-powered toxicology analysis.
           Our system identifies potential risks, allergens, and provides safety insights.
@@ -172,12 +172,12 @@ export default function Home() {
       <CameraCapture onCapture={setImage} />
 
       {image && !analysisData && !error && (
-        <button 
-          onClick={handleUpload} 
+        <button
+          onClick={handleUpload}
           className="btn upload"
           disabled={loading}
         >
-          {loading ? "Analyzing..." : "🔍 Generate Report"}
+          {loading ? "Analyzing..." : "Generate Report"}
         </button>
       )}
 
@@ -306,22 +306,22 @@ export default function Home() {
             {/* Actions */}
             <div className="report-actions">
               {purchaseSuccess && (
-                <div className="success-message" style={{ marginBottom: "1rem", color: "#10b981", fontWeight: "bold" }}>
-                  ✓ Product marked as purchased!
+                <div className="success-message">
+                  Product marked as purchased!
                 </div>
               )}
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <button onClick={handleMarkAsPurchased} className="btn secondary">
-                  📦 Mark as Purchased
+              <div className="action-buttons">
+                <button onClick={handleMarkAsPurchased} className="btn action-btn secondary">
+                  Mark as Purchased
                 </button>
                 <button
                   onClick={handleGetRecommendations}
-                  className="btn secondary"
+                  className="btn action-btn secondary"
                   disabled={loadingRecommendations}
                 >
-                  {loadingRecommendations ? "Loading..." : "🔍 Get Safer Alternatives"}
+                  {loadingRecommendations ? "Loading..." : "Get Safer Alternatives"}
                 </button>
-                <button onClick={handleReset} className="btn primary">
+                <button onClick={handleReset} className="btn action-btn primary">
                   Analyze Another Product
                 </button>
               </div>
@@ -335,7 +335,7 @@ export default function Home() {
         <div className="report-container fade-in" style={{ marginTop: "2rem" }}>
           <div className="report-card">
             <div className="report-header">
-              <h2 className="report-title">🌟 Recommended Safer Alternatives</h2>
+              <h2 className="report-title">Recommended Safer Alternatives</h2>
               <span className="confidence-badge confidence-high">
                 {recommendations.total_found} FOUND
               </span>
