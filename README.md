@@ -10,6 +10,9 @@ Nutrilens is a full-stack web application that uses AI-powered computer vision t
 - **⚠️ Allergen Detection**: Automatically detects common allergens in products
 - **👤 Personalized Alerts**: Set your allergen profile and get critical warnings when your allergens are detected
 - **💡 Safer Alternatives**: Suggests healthier ingredient alternatives for risky components
+- **🔍 Smart Recommendations**: Web search powered by Tavily API to find safer product alternatives based on your allergen profile
+- **📦 Purchase History**: Mark products as purchased to build your consumption history
+- **🎯 Personalized Suggestions**: Get product recommendations that consider your allergens and purchase history
 - **📊 Detailed Reports**: Comprehensive analysis with confidence ratings and scientific explanations
 - **🔐 User Authentication**: Secure signup/signin with bcrypt password hashing
 - **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -25,7 +28,8 @@ Nutrilens/
 │   │   ├── users.py             # User-related utilities (placeholder)
 │   │   └── routers/
 │   │       ├── auth.py          # Authentication endpoints (signup/signin/profile)
-│   │       └── label.py         # Label analysis endpoints with Gemini integration
+│   │       ├── label.py         # Label analysis endpoints with Gemini integration
+│   │       └── recommendations.py # Product recommendations & purchase history
 │   └── test/
 │       ├── ocrTest.py           # OCR testing utilities
 │       ├── test0.png            # Test image samples
@@ -58,6 +62,7 @@ Nutrilens/
 - **Node.js 16+** (recommend 18+) and npm
 - **MongoDB** instance (local or MongoDB Atlas)
 - **Google Gemini API key** with access to Gemini 2.5 Flash model
+- **Tavily API key** for web search and product recommendations
 
 ## 🚀 Setup Instructions
 
@@ -105,6 +110,7 @@ pip install -r requirements.txt
 - `pymongo` - MongoDB driver
 - `bcrypt` - Password hashing
 - `google-generativeai` - Gemini API client
+- `tavily-python` - Web search API client
 - `python-dotenv` - Environment variable management
 - `pillow` - Image processing
 
@@ -128,6 +134,7 @@ Create a `.env` file in the project root:
 ```env
 MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/
 GEMINI_API_KEY=your_gemini_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
 SECRET_KEY=your_secret_key_for_sessions
 ```
 
@@ -144,6 +151,12 @@ SECRET_KEY=your_secret_key_for_sessions
 - Visit [Google AI Studio](https://aistudio.google.com/apikey)
 - Create a new API key
 - Ensure you have access to Gemini 2.5 Flash model
+
+**Tavily API Key:**
+- Visit [Tavily](https://tavily.com/)
+- Sign up for a free account
+- Get your API key from the dashboard
+- Free tier includes 1,000 searches per month
 
 **Secret Key:**
 - Generate a secure random key:
@@ -218,6 +231,30 @@ VITE v7.1.7  ready in 123 ms
 
 Open http://localhost:5173 in your browser.
 
+## 🎯 Key Features Walkthrough
+
+### Product Analysis with Allergen Detection
+1. Sign in to your account
+2. Navigate to the Home page
+3. Capture or upload a product label image
+4. Click "Generate Report" to analyze
+5. View detailed toxicology analysis with risk levels
+6. If you have allergens set in your profile, critical warnings will appear if detected
+
+### Smart Recommendations System
+1. After analyzing a product, click "🔍 Get Safer Alternatives"
+2. The system uses Tavily web search to find similar products
+3. Results are filtered based on your allergen profile
+4. View product recommendations with relevance scores
+5. Click on links to explore recommended products
+
+### Purchase History Tracking
+1. After analyzing a product, click "📦 Mark as Purchased"
+2. Product is saved to your purchase history with full analysis data
+3. View your purchase history in the Profile page
+4. Future recommendations will consider your purchase patterns
+
+
 ## 📖 API Endpoints
 
 ### Authentication (`/auth`)
@@ -236,6 +273,15 @@ Open http://localhost:5173 in your browser.
 |--------|----------|-------------|
 | POST | `/api/v1/label/analyze` | Analyze product label image |
 | GET | `/api/v1/label/health` | Health check |
+
+### Recommendations (`/api/v1/recommendations`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/recommendations/purchase` | Mark product as purchased |
+| GET | `/api/v1/recommendations/history/{username}` | Get purchase history |
+| POST | `/api/v1/recommendations/suggest` | Get product recommendations |
+| GET | `/api/v1/recommendations/health` | Health check |
 
 ## 🎯 Using the Application
 
@@ -262,7 +308,25 @@ Open http://localhost:5173 in your browser.
   - Safer alternatives
   - Confidence rating
 
-### 4. Understanding the Report
+### 4. Mark Products as Purchased
+- After analyzing a product, click "📦 Mark as Purchased"
+- Product will be saved to your purchase history
+- This helps build your consumption profile for better recommendations
+
+### 5. Get Product Recommendations
+- Click "🔍 Get Safer Alternatives" after analyzing a product
+- System performs web search using Tavily API
+- Recommendations are filtered based on your allergen profile
+- View safer product alternatives with relevance scores
+- Click links to learn more about recommended products
+
+### 6. View Purchase History
+- Go to your Profile page
+- View all previously purchased products
+- See analysis data for each purchase
+- Track your consumption patterns
+
+### 7. Understanding the Report
 
 **Risk Levels:**
 - 🚨 **High**: Significant health concerns, avoid if possible
@@ -419,8 +483,9 @@ User captures image → Frontend (React)
 
 **Backend:**
 - FastAPI - Modern Python web framework
-- MongoDB - NoSQL database for user data
-- Google Gemini 2.5 Flash - Vision AI model
+- MongoDB - NoSQL database for user data and purchase history
+- Google Gemini 2.5 Flash - Vision AI model for label analysis
+- Tavily API - Web search for product recommendations
 - Bcrypt - Password hashing
 - Uvicorn - ASGI server
 
@@ -474,7 +539,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 ## 📈 Future Enhancements
 
 - [ ] JWT-based authentication with refresh tokens
-- [ ] Store analysis history in MongoDB
+- [ ] Enhanced recommendation algorithm using ML
 - [ ] Product barcode/UPC lookup and caching
 - [ ] Nutrition facts extraction and visualization
 - [ ] Dietary preference filtering (vegan, keto, etc.)
@@ -485,6 +550,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 - [ ] Background job processing (Celery + Redis)
 - [ ] Unit and integration tests
 - [ ] CI/CD pipeline
+- [ ] Collaborative filtering for recommendations
+- [ ] Price comparison for recommended products
 
 ## 🤝 Contributing
 

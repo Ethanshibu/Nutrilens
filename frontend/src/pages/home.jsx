@@ -9,6 +9,9 @@ export default function Home() {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recommendations, setRecommendations] = useState(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   const handleUpload = async () => {
     if (!image) return;
@@ -66,6 +69,76 @@ export default function Home() {
     setAnalysisData(null);
     setError("");
     setLoading(false);
+    setRecommendations(null);
+    setPurchaseSuccess(false);
+  };
+
+  const handleMarkAsPurchased = async () => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      setError("Please sign in to mark products as purchased");
+      return;
+    }
+
+    if (!analysisData) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/recommendations/purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          product_name: analysisData.product_name || "Unknown Product",
+          analysis_data: analysisData,
+          image_url: image
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark as purchased");
+      }
+
+      setPurchaseSuccess(true);
+      setTimeout(() => setPurchaseSuccess(false), 3000);
+    } catch (err) {
+      console.error("Purchase marking error:", err);
+      setError("Failed to mark product as purchased");
+    }
+  };
+
+  const handleGetRecommendations = async () => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      setError("Please sign in to get recommendations");
+      return;
+    }
+
+    setLoadingRecommendations(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/recommendations/suggest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          current_product: analysisData?.product_name || null,
+          limit: 5
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get recommendations");
+      }
+
+      const data = await response.json();
+      setRecommendations(data);
+    } catch (err) {
+      console.error("Recommendations error:", err);
+      setError("Failed to get recommendations. Please try again.");
+    } finally {
+      setLoadingRecommendations(false);
+    }
   };
 
   const getRiskColor = (level) => {
@@ -232,8 +305,72 @@ export default function Home() {
 
             {/* Actions */}
             <div className="report-actions">
-              <button onClick={handleReset} className="btn primary">
-                Analyze Another Product
+              {purchaseSuccess && (
+                <div className="success-message" style={{ marginBottom: "1rem", color: "#10b981", fontWeight: "bold" }}>
+                  ✓ Product marked as purchased!
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button onClick={handleMarkAsPurchased} className="btn secondary">
+                  📦 Mark as Purchased
+                </button>
+                <button
+                  onClick={handleGetRecommendations}
+                  className="btn secondary"
+                  disabled={loadingRecommendations}
+                >
+                  {loadingRecommendations ? "Loading..." : "🔍 Get Safer Alternatives"}
+                </button>
+                <button onClick={handleReset} className="btn primary">
+                  Analyze Another Product
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recommendations Section */}
+      {recommendations && (
+        <div className="report-container fade-in" style={{ marginTop: "2rem" }}>
+          <div className="report-card">
+            <div className="report-header">
+              <h2 className="report-title">🌟 Recommended Safer Alternatives</h2>
+              <span className="confidence-badge confidence-high">
+                {recommendations.total_found} FOUND
+              </span>
+            </div>
+
+            {recommendations.user_allergens && recommendations.user_allergens.length > 0 && (
+              <div className="report-section">
+                <p className="summary-text">
+                  Based on your allergen profile: <strong>{recommendations.user_allergens.join(", ")}</strong>
+                </p>
+              </div>
+            )}
+
+            <div className="report-section">
+              <div className="recommendations-list">
+                {recommendations.recommendations.map((rec, idx) => (
+                  <div key={idx} className="recommendation-card">
+                    <h4 className="recommendation-title">
+                      <a href={rec.url} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none" }}>
+                        {rec.title}
+                      </a>
+                    </h4>
+                    <p className="recommendation-content">{rec.content}</p>
+                    <div style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#6b7280" }}>
+                      <span>Relevance: {(rec.score * 100).toFixed(0)}%</span>
+                      <span style={{ marginLeft: "1rem" }}>💡 {rec.reason}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="report-actions">
+              <button onClick={() => setRecommendations(null)} className="btn secondary">
+                Close Recommendations
               </button>
             </div>
           </div>

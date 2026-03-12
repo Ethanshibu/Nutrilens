@@ -591,3 +591,48 @@ body {
 }
 
 /* Made with Bob */
+
+/* Recommendations styles */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.recommendation-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.recommendation-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  transform: translateY(-2px);
+}
+
+.recommendation-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0b0b0b;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.recommendation-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.success-message {
+  padding: 1rem;
+  background: #d1fae5;
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in;
+}

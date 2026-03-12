@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi import APIRouter
 from routers import auth  # imports the authentication routes
 from routers import label  # imports the label analysis routes
+from routers import recommendations  # imports the recommendations routes
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import File, UploadFile
 
@@ -21,6 +22,7 @@ app.add_middleware(
 router = APIRouter()
 app.include_router(auth.router)
 app.include_router(label.router)
+app.include_router(recommendations.router)
 
 @app.get("/")
 

@@ -19,6 +19,8 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     // Get username from localStorage (we'll set this on signin)
@@ -29,6 +31,7 @@ export default function Profile() {
     }
     setUsername(storedUsername);
     loadProfile(storedUsername);
+    loadPurchaseHistory(storedUsername);
   }, [navigate]);
 
   const loadProfile = async (user) => {
@@ -44,6 +47,21 @@ export default function Profile() {
     } catch (err) {
       setError("Failed to load profile. Please try again.");
       setLoading(false);
+    }
+  };
+
+  const loadPurchaseHistory = async (user) => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/recommendations/history/${user}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPurchaseHistory(data.purchases || []);
+      }
+    } catch (err) {
+      console.error("Failed to load purchase history:", err);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -231,6 +249,39 @@ export default function Profile() {
             </button>
           </div>
         </form>
+
+        {/* Purchase History Section */}
+        <div className="purchase-history-section">
+          <h2 className="section-title">📦 Purchase History</h2>
+          {loadingHistory ? (
+            <p className="loading-text">Loading purchase history...</p>
+          ) : purchaseHistory.length === 0 ? (
+            <p className="empty-message">No purchases yet. Start analyzing products and mark them as purchased!</p>
+          ) : (
+            <div className="purchase-list">
+              {purchaseHistory.map((purchase, idx) => (
+                <div key={purchase._id || idx} className="purchase-item">
+                  <div className="purchase-header">
+                    <h3 className="purchase-product-name">{purchase.product_name}</h3>
+                    <span className="purchase-date">
+                      {new Date(purchase.purchased_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {purchase.allergens && purchase.allergens.length > 0 && (
+                    <div className="purchase-allergens">
+                      <strong>Allergens:</strong> {purchase.allergens.join(", ")}
+                    </div>
+                  )}
+                  {purchase.analysis_data?.confidence && (
+                    <div className="purchase-confidence">
+                      <strong>Analysis Confidence:</strong> {purchase.analysis_data.confidence}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ client = MongoClient(
 
 db = client["nutrilens"]
 usertable = db["users"]
+purchasestable = db["purchases"]
 
 # Test connection
 try:
