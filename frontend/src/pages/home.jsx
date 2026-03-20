@@ -330,12 +330,12 @@ export default function Home() {
         </div>
       )}
 
-      {/* Recommendations Section */}
+      {/* Recommendations Section - Amazon Products */}
       {recommendations && (
         <div className="report-container fade-in" style={{ marginTop: "2rem" }}>
           <div className="report-card">
             <div className="report-header">
-              <h2 className="report-title">Recommended Safer Alternatives</h2>
+              <h2 className="report-title">🛒 Amazon Product Recommendations</h2>
               <span className="confidence-badge confidence-high">
                 {recommendations.total_found} FOUND
               </span>
@@ -344,29 +344,130 @@ export default function Home() {
             {recommendations.user_allergens && recommendations.user_allergens.length > 0 && (
               <div className="report-section">
                 <p className="summary-text">
-                  Based on your allergen profile: <strong>{recommendations.user_allergens.join(", ")}</strong>
+                  ✅ Filtered to exclude your allergens: <strong>{recommendations.user_allergens.join(", ")}</strong>
                 </p>
               </div>
             )}
 
             <div className="report-section">
               <div className="recommendations-list">
-                {recommendations.recommendations.map((rec, idx) => (
-                  <div key={idx} className="recommendation-card">
-                    <h4 className="recommendation-title">
-                      <a href={rec.url} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none" }}>
-                        {rec.title}
-                      </a>
-                    </h4>
-                    <p className="recommendation-content">{rec.content}</p>
-                    <div style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#6b7280" }}>
-                      <span>Relevance: {(rec.score * 100).toFixed(0)}%</span>
-                      <span style={{ marginLeft: "1rem" }}>💡 {rec.reason}</span>
+                {recommendations.recommendations.map((product, idx) => (
+                  <div key={idx} className="recommendation-card amazon-product-card">
+                    <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                      {/* Product Image */}
+                      {product.thumbnail && (
+                        <div style={{ flexShrink: 0 }}>
+                          <img
+                            src={product.thumbnail}
+                            alt={product.title}
+                            style={{
+                              width: "120px",
+                              height: "120px",
+                              objectFit: "contain",
+                              borderRadius: "8px",
+                              border: "1px solid #e5e7eb"
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Product Details */}
+                      <div style={{ flex: 1 }}>
+                        <h4 className="recommendation-title">
+                          <a
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#2563eb", textDecoration: "none", fontWeight: "600" }}
+                          >
+                            {product.title}
+                          </a>
+                        </h4>
+                        
+                        {/* Price and Rating */}
+                        <div style={{ display: "flex", gap: "1rem", alignItems: "center", marginTop: "0.5rem" }}>
+                          {product.price && (
+                            <span style={{ fontSize: "1.25rem", fontWeight: "bold", color: "#059669" }}>
+                              {product.price}
+                            </span>
+                          )}
+                          {product.rating > 0 && (
+                            <span style={{ fontSize: "0.875rem", color: "#f59e0b" }}>
+                              ⭐ {product.rating} ({product.ratings_total || 0} reviews)
+                            </span>
+                          )}
+                          {product.is_prime && (
+                            <span style={{
+                              fontSize: "0.75rem",
+                              backgroundColor: "#00a8e1",
+                              color: "white",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                              fontWeight: "600"
+                            }}>
+                              Prime
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Description */}
+                        {product.description && (
+                          <p className="recommendation-content" style={{ marginTop: "0.5rem" }}>
+                            {product.description}
+                          </p>
+                        )}
+
+                        {/* Delivery Info */}
+                        {product.delivery && (
+                          <p style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                            🚚 {product.delivery}
+                          </p>
+                        )}
+
+                        {/* Recommendation Reason */}
+                        <div style={{
+                          marginTop: "0.75rem",
+                          padding: "0.5rem",
+                          backgroundColor: "#f0fdf4",
+                          borderRadius: "6px",
+                          fontSize: "0.875rem",
+                          color: "#059669"
+                        }}>
+                          💡 {product.reason}
+                        </div>
+
+                        {/* Buy Button */}
+                        <div style={{ marginTop: "0.75rem" }}>
+                          <a
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-block",
+                              padding: "0.5rem 1rem",
+                              backgroundColor: "#ff9900",
+                              color: "white",
+                              textDecoration: "none",
+                              borderRadius: "6px",
+                              fontWeight: "600",
+                              fontSize: "0.875rem"
+                            }}
+                          >
+                            View on Amazon →
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {recommendations.source && (
+              <div className="report-section" style={{ textAlign: "center", fontSize: "0.875rem", color: "#6b7280" }}>
+                Powered by {recommendations.source}
+              </div>
+            )}
 
             <div className="report-actions">
               <button onClick={() => setRecommendations(null)} className="btn secondary">

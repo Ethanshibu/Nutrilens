@@ -10,7 +10,7 @@ Nutrilens is a full-stack web application that uses AI-powered computer vision t
 - **⚠️ Allergen Detection**: Automatically detects common allergens in products
 - **👤 Personalized Alerts**: Set your allergen profile and get critical warnings when your allergens are detected
 - **💡 Safer Alternatives**: Suggests healthier ingredient alternatives for risky components
-- **🔍 Smart Recommendations**: Web search powered by Tavily API to find safer product alternatives based on your allergen profile
+- **🛒 Amazon Product Recommendations**: Real product search on Amazon via SearchApi.io to find safer alternatives you can actually buy
 - **📦 Purchase History**: Mark products as purchased to build your consumption history
 - **🎯 Personalized Suggestions**: Get product recommendations that consider your allergens and purchase history
 - **📊 Detailed Reports**: Comprehensive analysis with confidence ratings and scientific explanations
@@ -129,12 +129,12 @@ npm install
 
 ### 4. Environment Configuration
 
-Create a `.env` file in the project root:
+Create a `.env` file in the `backend` directory (or project root):
 
 ```env
 MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/
 GEMINI_API_KEY=your_gemini_api_key_here
-TAVILY_API_KEY=your_tavily_api_key_here
+SEARCHAPI_API_KEY=your_searchapi_key_here
 SECRET_KEY=your_secret_key_for_sessions
 ```
 
@@ -152,11 +152,12 @@ SECRET_KEY=your_secret_key_for_sessions
 - Create a new API key
 - Ensure you have access to Gemini 2.5 Flash model
 
-**Tavily API Key:**
-- Visit [Tavily](https://tavily.com/)
+**SearchApi API Key (for Amazon Product Search):**
+- Visit [SearchApi.io](https://www.searchapi.io/)
 - Sign up for a free account
 - Get your API key from the dashboard
-- Free tier includes 1,000 searches per month
+- Free tier includes 100 searches per month
+- Used for finding safer product alternatives on Amazon
 
 **Secret Key:**
 - Generate a secure random key:
@@ -241,12 +242,16 @@ Open http://localhost:5173 in your browser.
 5. View detailed toxicology analysis with risk levels
 6. If you have allergens set in your profile, critical warnings will appear if detected
 
-### Smart Recommendations System
+### Amazon Product Recommendations System
 1. After analyzing a product, click "🔍 Get Safer Alternatives"
-2. The system uses Tavily web search to find similar products
-3. Results are filtered based on your allergen profile
-4. View product recommendations with relevance scores
-5. Click on links to explore recommended products
+2. The system searches Amazon for similar healthier products via SearchApi.io
+3. Results are automatically filtered to exclude your allergens
+4. View real Amazon products with:
+   - Product images and prices
+   - Customer ratings and reviews
+   - Prime eligibility
+   - Direct "Buy on Amazon" links
+5. Click product links to purchase safer alternatives directly
 
 ### Purchase History Tracking
 1. After analyzing a product, click "📦 Mark as Purchased"
@@ -485,7 +490,8 @@ User captures image → Frontend (React)
 - FastAPI - Modern Python web framework
 - MongoDB - NoSQL database for user data and purchase history
 - Google Gemini 2.5 Flash - Vision AI model for label analysis
-- Tavily API - Web search for product recommendations
+- SearchApi.io - Amazon product search for recommendations
+- HTTPX - Async HTTP client for API calls
 - Bcrypt - Password hashing
 - Uvicorn - ASGI server
 

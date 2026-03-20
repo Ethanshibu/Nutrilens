@@ -5,28 +5,32 @@ from database import usertable, purchasestable
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 load_dotenv()
 
 router = APIRouter(prefix="/api/v1/recommendations", tags=["Recommendations"])
 
-# Tavily integration
-TAVILY_AVAILABLE = False
-tavily_client = None
+# Amazon Search integration via SearchApi
+AMAZON_SEARCH_AVAILABLE = False
+amazon_search_service = None
 
 try:
-    from tavily import TavilyClient
-    api_key = os.getenv("TAVILY_API_KEY")
-    if api_key:
-        tavily_client = TavilyClient(api_key=api_key)
-        TAVILY_AVAILABLE = True
-        print("✓ Tavily API initialized successfully")
+    from services.amazon_search import amazon_search_service as _amazon_service
+    amazon_search_service = _amazon_service
+    if amazon_search_service.is_available():
+        AMAZON_SEARCH_AVAILABLE = True
+        print("✓ Amazon Search API (SearchApi.io) initialized successfully")
     else:
-        print("⚠️ TAVILY_API_KEY not found in environment")
+        print("⚠️ SEARCHAPI_API_KEY not found in environment")
 except ImportError as e:
-    print(f"⚠️ Tavily package not installed: {e}")
+    print(f"⚠️ Amazon search service not available: {e}")
 except Exception as e:
-    print(f"⚠️ Tavily initialization failed: {e}")
+    print(f"⚠️ Amazon search initialization failed: {e}")
 
 class PurchaseProduct(BaseModel):
     username: str
@@ -147,12 +151,12 @@ async def delete_purchase(purchase_id: str, username: str = Query(...)):
 async def get_recommendations(request: RecommendationRequest):
     """
     Get product recommendations based on user's allergen profile and purchase history.
-    Uses Tavily web search to find safer alternatives.
+    Uses Amazon search via SearchApi.io to find safer product alternatives.
     """
-    if not TAVILY_AVAILABLE:
+    if not AMAZON_SEARCH_AVAILABLE:
         raise HTTPException(
             status_code=503,
-            detail="Recommendation service unavailable. Tavily API not configured."
+            detail="Recommendation service unavailable. Amazon Search API not configured."
         )
     
     # Get user data
@@ -167,48 +171,50 @@ async def get_recommendations(request: RecommendationRequest):
         {"username": request.username}
     ).sort("purchased_at", -1).limit(10))
     
-    # Build search query based on user profile
-    allergen_filter = ""
-    if user_allergens:
-        allergen_filter = f" without {', '.join(user_allergens)}"
-    
     # Determine product category from current product or history
-    product_category = "food products"
+    product_name = "healthy food"
     if request.current_product:
-        product_category = request.current_product
+        product_name = request.current_product
     elif purchase_history:
         # Use most recent purchase as reference
-        product_category = purchase_history[0].get("product_name", "food products")
-    
-    # Build search query
-    search_query = f"healthy alternative {product_category}{allergen_filter} safe ingredients low toxicity"
+        product_name = purchase_history[0].get("product_name", "healthy food")
     
     try:
-        # Perform web search using Tavily
-        search_results = tavily_client.search(
-            query=search_query,
-            search_depth="advanced",
-            max_results=request.limit
+        # Search for safer alternatives on Amazon
+        search_results = await amazon_search_service.search_products(
+            query=f"healthy {product_name} alternative organic",
+            exclude_allergens=user_allergens,
+            max_results=request.limit,
+            department="grocery"
         )
         
+        # Format products for frontend
         recommendations = []
-        for result in search_results.get("results", []):
+        for product in search_results.get("products", []):
             recommendation = {
-                "title": result.get("title", ""),
-                "url": result.get("url", ""),
-                "content": result.get("content", ""),
-                "score": result.get("score", 0),
-                "reason": f"Recommended based on your allergen profile{allergen_filter}"
+                "title": product.get("title", ""),
+                "url": product.get("link", ""),
+                "asin": product.get("asin", ""),
+                "price": product.get("price", "N/A"),
+                "rating": product.get("rating", 0),
+                "ratings_total": product.get("ratings_total", 0),
+                "thumbnail": product.get("thumbnail", ""),
+                "description": product.get("description", ""),
+                "is_prime": product.get("is_prime", False),
+                "delivery": product.get("delivery", ""),
+                "reason": product.get("reason", "Safer alternative based on your profile")
             }
             recommendations.append(recommendation)
         
         return {
             "username": request.username,
             "user_allergens": user_allergens,
-            "search_query": search_query,
+            "excluded_allergens": search_results.get("excluded_allergens", []),
+            "search_query": search_results.get("search_query", ""),
             "recommendations": recommendations,
             "total_found": len(recommendations),
-            "based_on_purchases": len(purchase_history)
+            "based_on_purchases": len(purchase_history),
+            "source": "Amazon via SearchApi.io"
         }
         
     except Exception as e:
@@ -223,7 +229,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "Recommendations",
-        "tavily_available": TAVILY_AVAILABLE
+        "amazon_search_available": AMAZON_SEARCH_AVAILABLE
     }
 
 # Made with Bob
