@@ -15,10 +15,20 @@ class SignupUser(BaseModel):
     password: str
     name: Optional[str] = None
     allergens: Optional[List[str]] = []
+    age: Optional[int] = None
+    bmi: Optional[float] = None
+    diabetes: Optional[bool] = False
+    heart_disease: Optional[bool] = False
+    hypertension: Optional[bool] = False
 
 class UpdateProfile(BaseModel):
     name: Optional[str] = None
     allergens: Optional[List[str]] = None
+    age: Optional[int] = None
+    bmi: Optional[float] = None
+    diabetes: Optional[bool] = None
+    heart_disease: Optional[bool] = None
+    hypertension: Optional[bool] = None
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user: SignupUser):
@@ -35,7 +45,12 @@ async def signup(user: SignupUser):
         "username": user.username,
         "password": hashed_pw,
         "name": user.name or user.username,
-        "allergens": user.allergens or []
+        "allergens": user.allergens or [],
+        "age": user.age,
+        "bmi": user.bmi,
+        "diabetes": user.diabetes or False,
+        "heart_disease": user.heart_disease or False,
+        "hypertension": user.hypertension or False
     }
     
     usertable.insert_one(user_doc)
@@ -59,7 +74,12 @@ async def signin(user: User):
         "message": f"Welcome back, {existing_user.get('name', user.username)}!",
         "username": user.username,
         "name": existing_user.get("name", user.username),
-        "allergens": existing_user.get("allergens", [])
+        "allergens": existing_user.get("allergens", []),
+        "age": existing_user.get("age"),
+        "bmi": existing_user.get("bmi"),
+        "diabetes": existing_user.get("diabetes", False),
+        "heart_disease": existing_user.get("heart_disease", False),
+        "hypertension": existing_user.get("hypertension", False)
     }
 
 @router.get("/profile/{username}")
@@ -75,7 +95,12 @@ async def get_profile(username: str):
     return {
         "username": user["username"],
         "name": user.get("name", user["username"]),
-        "allergens": user.get("allergens", [])
+        "allergens": user.get("allergens", []),
+        "age": user.get("age"),
+        "bmi": user.get("bmi"),
+        "diabetes": user.get("diabetes", False),
+        "heart_disease": user.get("heart_disease", False),
+        "hypertension": user.get("hypertension", False)
     }
 
 @router.put("/profile/{username}")
@@ -91,6 +116,16 @@ async def update_profile(username: str, profile: UpdateProfile):
         update_doc["name"] = profile.name
     if profile.allergens is not None:
         update_doc["allergens"] = profile.allergens
+    if profile.age is not None:
+        update_doc["age"] = profile.age
+    if profile.bmi is not None:
+        update_doc["bmi"] = profile.bmi
+    if profile.diabetes is not None:
+        update_doc["diabetes"] = profile.diabetes
+    if profile.heart_disease is not None:
+        update_doc["heart_disease"] = profile.heart_disease
+    if profile.hypertension is not None:
+        update_doc["hypertension"] = profile.hypertension
     
     if not update_doc:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -105,7 +140,12 @@ async def update_profile(username: str, profile: UpdateProfile):
         "message": "Profile updated successfully",
         "username": username,
         "name": update_doc.get("name", user.get("name")),
-        "allergens": update_doc.get("allergens", user.get("allergens", []))
+        "allergens": update_doc.get("allergens", user.get("allergens", [])),
+        "age": update_doc.get("age", user.get("age")),
+        "bmi": update_doc.get("bmi", user.get("bmi")),
+        "diabetes": update_doc.get("diabetes", user.get("diabetes", False)),
+        "heart_disease": update_doc.get("heart_disease", user.get("heart_disease", False)),
+        "hypertension": update_doc.get("hypertension", user.get("hypertension", False))
     }
 
 # TEST ROUTE

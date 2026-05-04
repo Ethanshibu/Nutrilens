@@ -21,6 +21,15 @@ export default function Profile() {
   const [message, setMessage] = useState("");
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  // Health profile fields
+  const [age, setAge] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [diabetes, setDiabetes] = useState(false);
+  const [heartDisease, setHeartDisease] = useState(false);
+  const [hypertension, setHypertension] = useState(false);
+  const [calculatedBMI, setCalculatedBMI] = useState(null);
 
   useEffect(() => {
     // Get username from localStorage (we'll set this on signin)
@@ -34,6 +43,32 @@ export default function Profile() {
     loadPurchaseHistory(storedUsername);
   }, [navigate]);
 
+  // Calculate BMI when height or weight changes
+  React.useEffect(() => {
+    if (height && weight) {
+      const heightInMeters = parseFloat(height) / 100;
+      const weightInKg = parseFloat(weight);
+      
+      if (heightInMeters > 0 && weightInKg > 0) {
+        const bmi = weightInKg / (heightInMeters * heightInMeters);
+        setCalculatedBMI(bmi.toFixed(2));
+      } else {
+        setCalculatedBMI(null);
+      }
+    } else {
+      setCalculatedBMI(null);
+    }
+  }, [height, weight]);
+
+  const getBMICategory = (bmi) => {
+    if (!bmi) return "";
+    const bmiValue = parseFloat(bmi);
+    if (bmiValue < 18.5) return "Underweight";
+    if (bmiValue < 25) return "Normal";
+    if (bmiValue < 30) return "Overweight";
+    return "Obese";
+  };
+
   const loadProfile = async (user) => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/profile/${user}`);
@@ -43,8 +78,22 @@ export default function Profile() {
       const data = await res.json();
       setName(data.name || "");
       setAllergens(data.allergens || []);
+      
+      // Load health profile data
+      setAge(data.age || "");
+      setDiabetes(data.diabetes || false);
+      setHeartDisease(data.heart_disease || false);
+      setHypertension(data.hypertension || false);
+      
+      // Calculate height and weight from BMI if available
+      // For now, we'll just store BMI and let user update height/weight
+      if (data.bmi) {
+        setCalculatedBMI(data.bmi.toFixed(2));
+      }
+      
       setLoading(false);
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to load profile:", error);
       setError("Failed to load profile. Please try again.");
       setLoading(false);
     }
@@ -83,7 +132,8 @@ export default function Profile() {
       } else {
         throw new Error("Failed to delete purchase");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to delete purchase:", error);
       setError("Failed to remove purchase. Please try again.");
       setTimeout(() => setError(""), 3000);
     }
@@ -120,7 +170,12 @@ export default function Profile() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim() || username,
-          allergens: allergens
+          allergens: allergens,
+          age: age ? parseInt(age) : null,
+          bmi: calculatedBMI ? parseFloat(calculatedBMI) : null,
+          diabetes: diabetes,
+          heart_disease: heartDisease,
+          hypertension: hypertension
         }),
       });
 
@@ -253,6 +308,99 @@ export default function Profile() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="form-section health-profile-section">
+            <label className="profile-label">Health Profile</label>
+            <p className="profile-helper">
+              Update your health information for better personalized recommendations.
+            </p>
+            
+            <div className="health-grid">
+              <div className="health-field">
+                <label className="profile-label" htmlFor="age">Age (years)</label>
+                <input
+                  id="age"
+                  type="number"
+                  className="profile-input"
+                  placeholder="e.g., 30"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  min="1"
+                  max="120"
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="health-field">
+                <label className="profile-label" htmlFor="height">Height (cm)</label>
+                <input
+                  id="height"
+                  type="number"
+                  className="profile-input"
+                  placeholder="e.g., 170"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  min="50"
+                  max="250"
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="health-field">
+                <label className="profile-label" htmlFor="weight">Weight (kg)</label>
+                <input
+                  id="weight"
+                  type="number"
+                  className="profile-input"
+                  placeholder="e.g., 70"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  min="20"
+                  max="300"
+                  disabled={saving}
+                />
+              </div>
+            </div>
+
+            {calculatedBMI && (
+              <div className="bmi-display">
+                <p className="bmi-value">
+                  BMI: <strong>{calculatedBMI}</strong> ({getBMICategory(calculatedBMI)})
+                </p>
+              </div>
+            )}
+
+            <div className="health-conditions">
+              <p className="profile-label">Health Conditions</p>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={diabetes}
+                  onChange={(e) => setDiabetes(e.target.checked)}
+                  disabled={saving}
+                />
+                <span>Diabetes</span>
+              </label>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={heartDisease}
+                  onChange={(e) => setHeartDisease(e.target.checked)}
+                  disabled={saving}
+                />
+                <span>Heart Disease</span>
+              </label>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={hypertension}
+                  onChange={(e) => setHypertension(e.target.checked)}
+                  disabled={saving}
+                />
+                <span>Hypertension</span>
+              </label>
+            </div>
           </div>
 
           <div className="button-group">

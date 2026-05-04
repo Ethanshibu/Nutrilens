@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import CameraCapture from "../components/CameraCapture";
 import "./home.css";
 
@@ -12,6 +12,8 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState(null);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [inputMethod, setInputMethod] = useState("camera");
+  const fileInputRef = useRef(null);
 
   const handleUpload = async () => {
     if (!image) return;
@@ -71,6 +73,46 @@ export default function Home() {
     setLoading(false);
     setRecommendations(null);
     setPurchaseSuccess(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload a valid image file (JPEG, PNG, or WebP)');
+      return;
+    }
+
+    // Validate file size (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    // Convert to data URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImage(reader.result);
+      setError('');
+    };
+    reader.onerror = () => {
+      setError('Failed to read file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearImage = () => {
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleMarkAsPurchased = async () => {
@@ -164,12 +206,57 @@ export default function Home() {
       <div className="header-section">
         <h1 className="title">Toxicology Analyzer</h1>
         <p className="subtitle">
-          Capture a product label to get an instant AI-powered toxicology analysis.
+          Capture or upload a product label to get an instant AI-powered toxicology analysis.
           Our system identifies potential risks, allergens, and provides safety insights.
         </p>
       </div>
 
-      <CameraCapture onCapture={setImage} />
+      {/* Input Method Selector */}
+      <div className="input-method-selector">
+        <button
+          className={`method-tab ${inputMethod === "camera" ? "active" : ""}`}
+          onClick={() => setInputMethod("camera")}
+        >
+          📷 Camera
+        </button>
+        <button
+          className={`method-tab ${inputMethod === "upload" ? "active" : ""}`}
+          onClick={() => setInputMethod("upload")}
+        >
+          📁 Upload File
+        </button>
+      </div>
+
+      {/* Conditional Rendering: Camera or File Upload */}
+      {inputMethod === "camera" ? (
+        <CameraCapture onCapture={setImage} />
+      ) : (
+        <div className="file-upload-container">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/jpg"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+            ref={fileInputRef}
+          />
+          {!image ? (
+            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
+              <div className="upload-icon">📁</div>
+              <p className="upload-text">Click to upload or drag and drop</p>
+              <p className="upload-hint">JPEG, PNG, or WebP (max 10MB)</p>
+            </div>
+          ) : (
+            <div className="preview-section">
+              <img src={image} alt="Uploaded" className="preview-img" />
+              <div className="btn-group">
+                <button onClick={handleClearImage} className="btn secondary">
+                  Choose Different Image
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {image && !analysisData && !error && (
         <button

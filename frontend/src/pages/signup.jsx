@@ -20,6 +20,41 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  
+  // Health profile fields
+  const [age, setAge] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [diabetes, setDiabetes] = useState(false);
+  const [heartDisease, setHeartDisease] = useState(false);
+  const [hypertension, setHypertension] = useState(false);
+  const [calculatedBMI, setCalculatedBMI] = useState(null);
+
+  // Calculate BMI when height or weight changes
+  React.useEffect(() => {
+    if (height && weight) {
+      const heightInMeters = parseFloat(height) / 100; // Convert cm to meters
+      const weightInKg = parseFloat(weight);
+      
+      if (heightInMeters > 0 && weightInKg > 0) {
+        const bmi = weightInKg / (heightInMeters * heightInMeters);
+        setCalculatedBMI(bmi.toFixed(2));
+      } else {
+        setCalculatedBMI(null);
+      }
+    } else {
+      setCalculatedBMI(null);
+    }
+  }, [height, weight]);
+
+  const getBMICategory = (bmi) => {
+    if (!bmi) return "";
+    const bmiValue = parseFloat(bmi);
+    if (bmiValue < 18.5) return "Underweight";
+    if (bmiValue < 25) return "Normal";
+    if (bmiValue < 30) return "Overweight";
+    return "Obese";
+  };
 
   const toggleAllergen = (allergen) => {
     setSelectedAllergens(prev =>
@@ -63,7 +98,12 @@ export default function SignUp() {
           username: username.trim(),
           password,
           name: name.trim() || username.trim(),
-          allergens: selectedAllergens
+          allergens: selectedAllergens,
+          age: age ? parseInt(age) : null,
+          bmi: calculatedBMI ? parseFloat(calculatedBMI) : null,
+          diabetes: diabetes,
+          heart_disease: heartDisease,
+          hypertension: hypertension
         }),
       });
 
@@ -80,12 +120,20 @@ export default function SignUp() {
       setConfirm("");
       setName("");
       setSelectedAllergens([]);
+      setAge("");
+      setHeight("");
+      setWeight("");
+      setDiabetes(false);
+      setHeartDisease(false);
+      setHypertension(false);
+      setCalculatedBMI(null);
       setLoading(false);
 
       // Redirect to signin after 1.5 seconds
       setTimeout(() => navigate("/signin"), 1500);
-    } catch (err) {
-      setError("Network error. Check backend and try again.");
+    } catch (error) {
+      console.error("Signup error:", error);
+      setError(error.message || "Network error. Check backend and try again.");
       setLoading(false);
     }
   }
@@ -222,6 +270,97 @@ export default function SignUp() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="health-section">
+            <label className="su-label">Health Profile (Optional)</label>
+            <p className="su-helper">Help us provide better recommendations based on your health profile.</p>
+            
+            <div className="health-grid">
+              <div className="health-field">
+                <label className="su-label" htmlFor="age">Age (years)</label>
+                <input
+                  id="age"
+                  type="number"
+                  className="su-input"
+                  placeholder="e.g., 30"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  min="1"
+                  max="120"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="health-field">
+                <label className="su-label" htmlFor="height">Height (cm)</label>
+                <input
+                  id="height"
+                  type="number"
+                  className="su-input"
+                  placeholder="e.g., 170"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  min="50"
+                  max="250"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="health-field">
+                <label className="su-label" htmlFor="weight">Weight (kg)</label>
+                <input
+                  id="weight"
+                  type="number"
+                  className="su-input"
+                  placeholder="e.g., 70"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  min="20"
+                  max="300"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {calculatedBMI && (
+              <div className="bmi-display">
+                <p className="bmi-value">
+                  BMI: <strong>{calculatedBMI}</strong> ({getBMICategory(calculatedBMI)})
+                </p>
+              </div>
+            )}
+
+            <div className="health-conditions">
+              <p className="su-label">Health Conditions</p>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={diabetes}
+                  onChange={(e) => setDiabetes(e.target.checked)}
+                  disabled={loading}
+                />
+                <span>Diabetes</span>
+              </label>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={heartDisease}
+                  onChange={(e) => setHeartDisease(e.target.checked)}
+                  disabled={loading}
+                />
+                <span>Heart Disease</span>
+              </label>
+              <label className="health-checkbox">
+                <input
+                  type="checkbox"
+                  checked={hypertension}
+                  onChange={(e) => setHypertension(e.target.checked)}
+                  disabled={loading}
+                />
+                <span>Hypertension</span>
+              </label>
+            </div>
           </div>
 
           <button

@@ -177,3 +177,76 @@
   flex: 1;
   margin: 0;
 }
+
+/* Health Profile Section */
+.health-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.health-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.bmi-display {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f0f9ff;
+  border-radius: 0.5rem;
+  border: 1px solid #bfdbfe;
+}
+
+.bmi-value {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.95rem;
+}
+
+.bmi-value strong {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.health-conditions {
+  margin-top: 1rem;
+}
+
+.health-checkbox {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.health-checkbox input[type="checkbox"] {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.health-checkbox span {
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .health-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .health-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+}
