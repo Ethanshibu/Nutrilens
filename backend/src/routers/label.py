@@ -4,6 +4,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from dotenv import load_dotenv
 from database import usertable
 from typing import Optional
+from services.model import nutrition_model
 
 load_dotenv()
 
@@ -33,6 +34,11 @@ You are given an IMAGE of a product label.
 Your task:
 - Visually read the label
 - Identify ingredients with known toxicological, allergenic, or interaction risks
+- Extract nutritional information per serving:
+  - sugars: total sugars in grams
+  - kcal: calories per serving
+  - sodium: sodium in milligrams
+  - saturated_fats: saturated fats in grams
 - Explain risks using neutral, scientific language
 - Assess confidence explicitly
 - Suggest safer ingredient alternatives where appropriate
@@ -42,6 +48,12 @@ Rules:
   {{
     "product_name": "string",
     "ingredients": ["list of ingredients"],
+    "nutrition": {{
+      "sugars": "float",
+      "kcal": "float",
+      "sodium": "float",
+      "saturated_fats": "float"
+    }},
     "toxicology_risks": [
       {{
         "ingredient": "string",
@@ -76,12 +88,27 @@ async def analyze_label(file: UploadFile = File(...), username: Optional[str] = 
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Empty image file")
 
-    # Get user allergens if username provided
+
+    # Get user data if username provided
     user_allergens = []
+    user_health = {
+        "age": None,
+        "bmi": None,
+        "diabetes": 0,
+        "heart_disease": 0,
+        "hypertension": 0
+    }
+
     if username:
         user = usertable.find_one({"username": username})
         if user:
             user_allergens = user.get("allergens", [])
+            # Extract health data for ML model
+            user_health["age"] = user.get("age")
+            user_health["bmi"] = user.get("bmi")
+            user_health["diabetes"] = int(user.get("diabetes", False))
+            user_health["heart_disease"] = int(user.get("heart_disease", False))
+            user_health["hypertension"] = int(user.get("hypertension", False))
 
     try:
         # Create the model
@@ -115,7 +142,38 @@ async def analyze_label(file: UploadFile = File(...), username: Optional[str] = 
             response_text = response_text.strip()
             
             result = json.loads(response_text)
-            
+            # Parse nutrition data and allergen matches
+            nutrition = result.get("nutrition", {})
+            sugars = nutrition.get("sugars", 0.0)
+            kcal = nutrition.get("kcal", 0.0)
+            sodium = nutrition.get("sodium", 0.0)
+            saturated_fats = nutrition.get("saturated_fats", 0.0)
+
+            # Count matched allergens
+            matched_allergens = result.get("user_allergens_detected", [])
+            allergen_match_count = len(matched_allergens)
+
+            # Build the feature vector for the ML model
+            features = {
+                "age": user_health["age"] or 0,
+                "bmi": user_health["bmi"] or 0.0,
+                "sugars": sugars,
+                "kcal": kcal,
+                "sodium": sodium,
+                "saturated_fats": saturated_fats,
+                "diabetes": user_health["diabetes"],
+                "heart_disease": user_health["heart_disease"],
+                "hypertension": user_health["hypertension"],
+                "allergen_match_count": allergen_match_count,
+            }
+
+            # Predict risk using the model
+            try:
+                risk_result = nutrition_model.predict_risk(features)
+                result["risk_prediction"] = risk_result
+            except Exception as exc:
+                print(f"⚠️ Risk model prediction failed: {exc}")
+                result["risk_prediction"] = None
             # Add user allergens to response for frontend highlighting
             result["user_allergens"] = user_allergens
             

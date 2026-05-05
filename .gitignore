@@ -24,3 +24,10 @@ venv
 *.sln
 *.sw?
 .env
+
+# ML model artifact
+/backend/src/services/models/*.pkl
+/backend/src/services/models/
+
+__pycache__/
+*.pyc

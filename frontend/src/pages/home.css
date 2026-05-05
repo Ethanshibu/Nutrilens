@@ -428,7 +428,45 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
+.risk-prediction-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
+.risk-prediction-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.risk-prediction-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.risk-prediction-label {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+
+.risk-prediction-detail {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin: 0;
+}
+
+.risk-prediction-card .risk-icon {
+  font-size: 1.7rem;
+  flex-shrink: 0;
+}
 .risk-header {
   display: flex;
   justify-content: space-between;
