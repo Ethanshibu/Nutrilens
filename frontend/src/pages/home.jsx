@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import CameraCapture from "../components/CameraCapture";
+import ShapChart from "../components/ShapChart"; // <-- Added import
 import "./home.css";
 
 const API_BASE_URL = "http://localhost:8000";
@@ -184,42 +185,43 @@ export default function Home() {
   };
 
   const getRiskColor = (category) => {
-  switch (category) {
-    case "safe":
-      return "#10b981";
-    case "moderate_risk":
-      return "#f59e0b";
-    case "severe_risk":
-      return "#dc2626";
-    default:
-      return "#6b7280";
-  }
-};
+    switch (category) {
+      case "safe":
+        return "#10b981";
+      case "moderate_risk":
+        return "#f59e0b";
+      case "severe_risk":
+        return "#dc2626";
+      default:
+        return "#6b7280";
+    }
+  };
 
   const getRiskIcon = (category) => {
-  switch (category) {
-    case "safe":
-      return "✅";
-    case "moderate_risk":
-      return "⚠️";
-    case "severe_risk":
-      return "🚨";
-    default:
-      return "ℹ️";
-  }
-};
+    switch (category) {
+      case "safe":
+        return "✅";
+      case "moderate_risk":
+        return "⚠️";
+      case "severe_risk":
+        return "🚨";
+      default:
+        return "ℹ️";
+    }
+  };
+
   const getRiskMessage = (category) => {
-  switch (category) {
-    case "safe":
-      return "Safe to consume";
-    case "moderate_risk":
-      return "Consider before consumption";
-    case "severe_risk":
-      return "Severe risk detected";
-    default:
-      return "Risk status unavailable";
-  }
-};
+    switch (category) {
+      case "safe":
+        return "Safe to consume";
+      case "moderate_risk":
+        return "Consider before consumption";
+      case "severe_risk":
+        return "Severe risk detected";
+      default:
+        return "Risk status unavailable";
+    }
+  };
 
   return (
     <div className="home-container">
@@ -325,31 +327,37 @@ export default function Home() {
                 <p className="summary-text">{analysisData.summary}</p>
               </div>
             )}
+            
+            {/* Risk Prediction */}
             {analysisData.risk_prediction && (
-  <div className="report-section">
-    <h3 className="section-title">🧠 Risk Prediction</h3>
-    <div
-      className="risk-prediction-card"
-      style={{
-        borderColor: getRiskColor(analysisData.risk_prediction.risk_category),
-      }}
-    >
-      <span className="risk-icon">
-        {getRiskIcon(analysisData.risk_prediction.risk_category)}
-      </span>
-      <div className="risk-prediction-content">
-        <p className="risk-prediction-label">
-          {analysisData.risk_prediction.risk_category
-            .replace("_", " ")
-            .toUpperCase()}
-        </p>
-        <p className="risk-prediction-detail">
-          {getRiskMessage(analysisData.risk_prediction.risk_category)}
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+              <div className="report-section">
+                <h3 className="section-title">🧠 Risk Prediction</h3>
+                <div
+                  className="risk-prediction-card"
+                  style={{
+                    borderColor: getRiskColor(analysisData.risk_prediction.risk_category),
+                  }}
+                >
+                  <span className="risk-icon">
+                    {getRiskIcon(analysisData.risk_prediction.risk_category)}
+                  </span>
+                  <div className="risk-prediction-content">
+                    <p className="risk-prediction-label">
+                      {analysisData.risk_prediction.risk_category
+                        .replace("_", " ")
+                        .toUpperCase()}
+                    </p>
+                    <p className="risk-prediction-detail">
+                      {getRiskMessage(analysisData.risk_prediction.risk_category)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NEW: SHAP Value Feature Impact Chart */}
+            <ShapChart shapValues={analysisData.risk_prediction?.shap_values} />
+
             {/* User's Allergens Detected - CRITICAL WARNING */}
             {analysisData.user_allergens_detected && analysisData.user_allergens_detected.length > 0 && (
               <div className="report-section user-allergen-warning">
