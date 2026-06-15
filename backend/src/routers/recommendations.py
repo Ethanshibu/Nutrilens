@@ -153,7 +153,7 @@ async def get_recommendations(request: RecommendationRequest):
     Get product recommendations based on user's allergen profile and purchase history.
     Uses Amazon search via SearchApi.io to find safer product alternatives.
     """
-    if not AMAZON_SEARCH_AVAILABLE:
+    if not AMAZON_SEARCH_AVAILABLE or amazon_search_service is None:
         raise HTTPException(
             status_code=503,
             detail="Recommendation service unavailable. Amazon Search API not configured."

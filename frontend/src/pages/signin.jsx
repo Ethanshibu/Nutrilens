@@ -43,7 +43,7 @@ export default function SignIn() {
       
       setLoading(false);
       navigate("/");
-    } catch (err) {
+    } catch {
       setError("Network error. Check backend and try again.");
       setLoading(false);
     }
